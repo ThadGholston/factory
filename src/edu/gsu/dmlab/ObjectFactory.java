@@ -19,6 +19,8 @@ import edu.gsu.dmlab.databases.interfaces.IImageDBConnection;
 import edu.gsu.dmlab.datatypes.interfaces.ITrack;
 import edu.gsu.dmlab.imageproc.HistogramProducer;
 import edu.gsu.dmlab.imageproc.interfaces.IHistogramProducer;
+import edu.gsu.dmlab.util.TrapezoidPositionPredictor;
+import edu.gsu.dmlab.util.interfaces.IPositionPredictor;
 
 public class ObjectFactory {
 	public static IImageDBConnection getImageDBConnection(DataSource dsourc,
@@ -44,5 +46,9 @@ public class ObjectFactory {
 			e.printStackTrace();
 		}
 		return null;
+	}
+	
+	public static IPositionPredictor getPositionPredictor(int typeId) {
+		return new TrapezoidPositionPredictor();
 	}
 }
