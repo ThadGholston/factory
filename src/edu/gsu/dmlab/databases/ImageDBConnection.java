@@ -32,14 +32,17 @@ public class ImageDBConnection implements IImageDBConnection {
 	LoadingCache<CacheKey, float[][][]> cache = null;
 	int paramDownSample = 64;
 	int paramDim = 10;
+	HashFunction hashFunct = Hashing.md5();
 
 	private class CacheKey {
 		String key;
 		IEvent event;
 		int wavelength;
 		boolean leftSide;
+		HashCode hc = null;
 
-		public CacheKey(IEvent event, boolean leftSide, int wavelength) {
+		public CacheKey(IEvent event, boolean leftSide, int wavelength,
+				HashFunction hashFunct) {
 			StringBuilder evntName = new StringBuilder();
 			evntName.append(event.getUUID());
 			evntName.append(wavelength);
@@ -49,9 +52,18 @@ public class ImageDBConnection implements IImageDBConnection {
 				evntName.append("F");
 			}
 			this.key = evntName.toString();
+			this.hc = hashFunct.newHasher().putString(this.key, Charsets.UTF_8)
+					.hash();
 			this.event = event;
 			this.leftSide = leftSide;
 			this.wavelength = wavelength;
+		}
+
+		@Override
+		public void finalize() {
+			this.hc = null;
+			this.key = null;
+			this.event = null;
 		}
 
 		public IEvent getEvent() {
@@ -72,11 +84,7 @@ public class ImageDBConnection implements IImageDBConnection {
 
 		@Override
 		public int hashCode() {
-			HashFunction hashFunct = Hashing.md5();
-			HashCode hc = hashFunct.newHasher()
-					.putString(this.key, Charsets.UTF_8).hash();
 			return hc.asInt();
-
 		}
 
 		@Override
@@ -113,8 +121,10 @@ public class ImageDBConnection implements IImageDBConnection {
 	@Override
 	public float[][][] getImageParam(IEvent event, int wavelength,
 			boolean leftSide) {
-		CacheKey key = new CacheKey(event, leftSide, wavelength);
-		return this.cache.getUnchecked(key);
+		CacheKey key = new CacheKey(event, leftSide, wavelength, this.hashFunct);
+		float[][][] returnValue = this.cache.getUnchecked(key);
+		key = null;
+		return returnValue;
 	}
 
 	@Override

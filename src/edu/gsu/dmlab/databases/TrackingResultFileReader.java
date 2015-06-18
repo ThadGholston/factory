@@ -47,7 +47,8 @@ public class TrackingResultFileReader {
 
 		BufferedReader in = null;
 		try {
-			in = new BufferedReader(new FileReader(this.fileLocation+File.separator+type+"DustinTracked.txt"));
+			in = new BufferedReader(new FileReader(this.fileLocation
+					+ File.separator + type + "DustinTracked.txt"));
 			String line = null;
 
 			int lastTrackId = 0;
@@ -83,8 +84,9 @@ public class TrackingResultFileReader {
 
 					Date startDate = this.formatter.parse(startTimeString);
 
+					//the * 1000 is to convert seconds into milliseconds
 					Interval range = new Interval(startDate.getTime(),
-							startDate.getTime() + this.span);
+							startDate.getTime() + (this.span * 1000));
 
 					IEvent ev = new GenaricEvent(count++, range, tmp_coord,
 							this.getRect(hpc_bbox_poly), hpc_ccode,

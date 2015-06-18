@@ -61,7 +61,8 @@ public class HistogramProducer implements IHistogramProducer {
 				m.put(y, x, vals);
 			}
 		}
-
+		paramsList.clear();
+		paramsList = null;
 		// for some reason the calcHist function wants a list of mat for the
 		// input
 		List<Mat> matsForHistFunction = new ArrayList<Mat>();
@@ -83,10 +84,33 @@ public class HistogramProducer implements IHistogramProducer {
 		MatOfInt histSizes = new MatOfInt(histSizeArr);
 
 		// create mask and histogram mat and calculate the histogram
-		Mat mask = new Mat();
+
 		Mat currHist = new Mat();
+		Mat mask = new Mat();
 		Imgproc.calcHist(matsForHistFunction, channels, mask, currHist,
 				histSizes, rangesMat);
+
+		// cleanup hopefully invoked a little faster with the null pointers.
+		m.release();
+		m = null;
+		mask.release();
+		mask = null;
+
+		matsForHistFunction.clear();
+		matsForHistFunction = null;
+
+		rangesMat.release();
+		rangesMat = null;
+
+		channels.release();
+		channels = null;
+
+		histSizes.release();
+		histSizes = null;
+
+		channelsArr = null;
+		histSizeArr = null;
+		// System.gc();
 		return currHist;
 	}
 }
