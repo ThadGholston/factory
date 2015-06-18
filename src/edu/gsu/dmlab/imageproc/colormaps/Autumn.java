@@ -2,7 +2,9 @@ package edu.gsu.dmlab.imageproc.colormaps;
 
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
-import org.opencv.core.Scalar;
+import org.opencv.core.MatOfDouble;
+import org.opencv.core.MatOfFloat;
+
 
 import edu.gsu.dmlab.exceptions.InvalidConfigException;
 import edu.gsu.dmlab.imageproc.ColorMap;
@@ -21,7 +23,7 @@ public class Autumn extends ColorMap {
 	}
 
 	protected void init(int n) throws InvalidConfigException {
-		double r[] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+		float r[] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 				1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 				1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 				1, 1, 1 };
@@ -46,15 +48,19 @@ public class Autumn extends ColorMap {
 				0.8571428571428571, 0.873015873015873, 0.8888888888888888,
 				0.9047619047619048, 0.9206349206349206, 0.9365079365079365,
 				0.9523809523809523, 0.9682539682539683, 0.9841269841269841, 1 };
-		double b[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		float b[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 				0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 				0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 				0, 0, 0 };
 		Mat X = ColorMap.linspace(0, 1, 64);
-		this._lut = ColorMap.linear_colormap(X, new Mat(64, 1, CvType.CV_32FC1,
-				new Scalar(r)).clone(), // red
-				new Mat(64, 1, CvType.CV_32FC1, new Scalar(g)).clone(), // green
-				new Mat(64, 1, CvType.CV_32FC1, new Scalar(b)).clone(), // blue
+		Mat rMatF = new MatOfFloat(r);
+		Mat gMat = new MatOfDouble(g);
+		Mat gMatF = new Mat();
+		gMat.convertTo(gMatF, CvType.CV_32FC1);
+		Mat bMatF = new MatOfFloat(b);
+		this._lut = ColorMap.linear_colormap(X, rMatF.clone(), // red
+				gMatF.clone(), // green
+				bMatF.clone(), // blue
 				n); // number of sample points
 	}
 };

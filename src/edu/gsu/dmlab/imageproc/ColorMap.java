@@ -21,30 +21,36 @@
 package edu.gsu.dmlab.imageproc;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfFloat;
 import org.opencv.imgproc.Imgproc;
+import org.opencv.utils.Converters;
 
 import edu.gsu.dmlab.exceptions.InvalidConfigException;
 import edu.gsu.dmlab.imageproc.colormaps.Autumn;
+import edu.gsu.dmlab.imageproc.colormaps.Bone;
+import edu.gsu.dmlab.imageproc.colormaps.Jet;
+import edu.gsu.dmlab.imageproc.colormaps.Winter;
 
 public abstract class ColorMap {
+
 	public static enum COLORMAP {
-		AUTUMN
+		AUTUMN, BONE, JET, WINTER
 	}
 
 	protected Mat _lut;
 
 	protected static Mat linspace(float x0, float x1, int n) {
-		Mat pts = new Mat(n, 1, CvType.CV_32FC1);
 		float step = (x1 - x0) / (n - 1);
+		float[] vals = new float[n];
 		for (int i = 0; i < n; i++) {
-			float[] dataVal = new float[1];
-			dataVal[0] = x0 + i * step;
-			pts.put(i, 0, dataVal);
+			vals[i] = x0 + i * step;
 		}
+		MatOfFloat pts = new MatOfFloat(vals);
 		return pts;
 	}
 
@@ -55,15 +61,15 @@ public abstract class ColorMap {
 					"cv::sortRowsByIndices only works on integer indices!");
 		Mat src = _src;
 
-		Mat indices = _indices;
+		ArrayList<Integer> idxList = new ArrayList<Integer>();
+		Converters.Mat_to_vector_int(_indices.t(), idxList);
 
 		_dst.create(src.rows(), src.cols(), src.type());
 		Mat dst = _dst;
-		for (int idx = 0; idx < indices.rows(); idx++) {
-			int[] idxs = new int[1];
-			indices.get(idx, 0, idxs);
-			Mat originalRow = src.row(idxs[0]);
-			Mat sortedRow = dst.row((int) idx);
+
+		for (int idx = 0; idx < idxList.size(); idx++) {
+			Mat originalRow = src.row(idxList.get(idx));
+			Mat sortedRow = dst.row(idx);
 			originalRow.copyTo(sortedRow);
 		}
 	}
@@ -99,9 +105,15 @@ public abstract class ColorMap {
 		Mat sort_indices = argsort(X_);
 
 		Mat X = sortMatrixRowsByIndices(X_, sort_indices);
+		// ArrayList<Float> xList = new ArrayList<Float>();
+		// Converters.Mat_to_vector_float(X, xList);
+
 		Mat Y = sortMatrixRowsByIndices(Y_, sort_indices);
-		// interpolated values
+		// ArrayList<Float> yList = new ArrayList<Float>();
+		// Converters.Mat_to_vector_float(Y, yList);
+
 		Mat yi = Mat.zeros(XI.size(), XI.type());
+		// interpolated values
 		for (int i = 0; i < n; i++) {
 			int c = 0;
 			int low = 0;
@@ -122,41 +134,13 @@ public abstract class ColorMap {
 			}
 
 			// linear interpolation
-			yi.get(i, 0)[0] += Y.get(low, 0)[0]
-					+ (XI.get(i, 0)[0] - X.get(low, 0)[0])
+			double[] tmp = yi.get(i, 0);
+			tmp[0] += Y.get(low, 0)[0] + (XI.get(i, 0)[0] - X.get(low, 0)[0])
 					* (Y.get(high, 0)[0] - Y.get(low, 0)[0])
 					/ (X.get(high, 0)[0] - X.get(low, 0)[0]);
+			yi.put(i, 0, tmp);
 		}
 		return yi;
-	}
-
-	static Mat interp1(Mat _x, Mat _Y, Mat _xi) throws InvalidConfigException {
-		// get matrices
-		Mat x = _x;
-		Mat Y = _Y;
-		Mat xi = _xi;
-		// check types & alignment
-		assert ((x.type() == Y.type()) && (Y.type() == xi.type()));
-		assert ((x.cols() == 1) && (x.rows() == Y.rows()) && (x.cols() == Y
-				.cols()));
-		// call templated interp1
-		if (x.type() == CvType.CV_8SC1)
-			return interp1_(x, Y, xi);
-		else if (x.type() == CvType.CV_8UC1)
-			return interp1_(x, Y, xi);
-		else if (x.type() == CvType.CV_16SC1)
-			return interp1_(x, Y, xi);
-		else if (x.type() == CvType.CV_16UC1)
-			return interp1_(x, Y, xi);
-		else if (x.type() == CvType.CV_32SC1)
-			return interp1_(x, Y, xi);
-		else if (x.type() == CvType.CV_32FC1)
-			return interp1_(x, Y, xi);
-		else if (x.type() == CvType.CV_64FC1)
-			return interp1_(x, Y, xi);
-		else
-			throw new InvalidConfigException("Unsupported format");
-
 	}
 
 	// Interpolates from a base colormap.
@@ -165,9 +149,9 @@ public abstract class ColorMap {
 		Mat lut = new Mat();
 		Mat lut8 = new Mat();
 		ArrayList<Mat> planes = new ArrayList<Mat>();
-		planes.add(interp1(X, b, xi));
-		planes.add(interp1(X, g, xi));
-		planes.add(interp1(X, r, xi));
+		planes.add(interp1_(X, b, xi));
+		planes.add(interp1_(X, g, xi));
+		planes.add(interp1_(X, r, xi));
 		Core.merge(planes, lut);
 		lut.convertTo(lut8, CvType.CV_8U, 255.);
 		return lut8;
@@ -185,10 +169,13 @@ public abstract class ColorMap {
 		return linear_colormap(X, r, g, b, linspace(0, 1, n));
 	}
 
-	public void applyColorMap(Mat src, Mat dst, COLORMAP colormap)
+	public static void applyColorMap(Mat src, Mat dst, COLORMAP colormap)
 			throws InvalidConfigException {
 		ColorMap cm = colormap == COLORMAP.AUTUMN ? (ColorMap) (new Autumn())
-				: null;
+				: colormap == COLORMAP.BONE ? (ColorMap) (new Bone())
+						: colormap == COLORMAP.JET ? (ColorMap) (new Jet())
+								: colormap == COLORMAP.WINTER ? (ColorMap) (new Winter())
+								: null;
 
 		if (cm != null) {
 			cm.apply(src, dst);
@@ -224,6 +211,7 @@ public abstract class ColorMap {
 		Imgproc.cvtColor(src.clone(), src, Imgproc.COLOR_GRAY2BGR);
 		// Apply the ColorMap.
 		Core.LUT(src, _lut, _dst);
+		// _lut.copyTo(_dst);
 	}
 
 	// Setup base map to interpolate from.
