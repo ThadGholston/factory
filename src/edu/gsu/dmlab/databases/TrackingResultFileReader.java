@@ -54,8 +54,8 @@ public class TrackingResultFileReader {
 			int lastTrackId = 0;
 			int count = 0;
 			IEvent lastEvent = null;
-			while ((line = in.readLine()) != null) {
 
+			while ((line = in.readLine()) != null) {
 				String[] lineSplit = line.split("\t");
 				if (lineSplit.length > 6) {
 					String eventTypeString, startTimeString, hpc_coord_string, hpc_bbox_string, hpc_ccode_string;
@@ -84,7 +84,7 @@ public class TrackingResultFileReader {
 
 					Date startDate = this.formatter.parse(startTimeString);
 
-					//the * 1000 is to convert seconds into milliseconds
+					// the * 1000 is to convert seconds into milliseconds
 					Interval range = new Interval(startDate.getTime(),
 							startDate.getTime() + (this.span * 1000));
 
@@ -95,9 +95,11 @@ public class TrackingResultFileReader {
 						lastEvent.setNext(ev);
 						ev.setPrevious(lastEvent);
 						Interval tmpRange = lastEvent.getTimePeriod();
-						Interval newRange = new Interval(
-								tmpRange.getStartMillis(),
-								range.getStartMillis() + 1);
+						Interval newRange = tmpRange.withEndMillis(range
+								.getEndMillis());
+						// new Interval(
+						// tmpRange.getStartMillis(),
+						// range.getStartMillis());
 						lastEvent.updateTimePeriod(newRange);
 						lastEvent = ev;
 					} else {

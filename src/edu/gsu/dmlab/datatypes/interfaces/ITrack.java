@@ -9,14 +9,35 @@
  */
 package edu.gsu.dmlab.datatypes.interfaces;
 
-public interface ITrack {
+public interface ITrack extends IBaseDataType{
+	
+	/**
+	 * Returns the start time in milliseconds of the first event in the track
+	 * @return
+	 */
 	public long getStartTimeMillis();
 
+	/**
+	 * Returns the end time in milliseconds of the last event in the track
+	 * @return
+	 */
 	public long getEndTimeMillis();
+	
+	/**
+	 * Returns an array that contains all of the events currently in the track
+	 * @return	array of all the events currently in the track
+	 */
+	public IEvent[] getEvents();
 
-	IEvent[] getEvents();
+	/**
+	 * Returns the first event in the track
+	 * @return	the first event in the track
+	 */
+	public IEvent getFirst();
 
-	IEvent getFirst();
-
-	IEvent getLast();
+	/**
+	 * Returns the last event in the track
+	 * @return	the last event in the track
+	 */
+	public IEvent getLast();
 }

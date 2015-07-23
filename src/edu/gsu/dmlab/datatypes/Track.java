@@ -11,6 +11,8 @@ package edu.gsu.dmlab.datatypes;
 
 import java.util.ArrayList;
 
+import org.joda.time.Interval;
+
 import edu.gsu.dmlab.datatypes.interfaces.IEvent;
 import edu.gsu.dmlab.datatypes.interfaces.ITrack;
 
@@ -18,6 +20,7 @@ public class Track implements ITrack {
 
 	IEvent first;
 	IEvent last;
+	Interval trackInterval = null;
 
 	public Track(IEvent first, IEvent last) {
 		if (first == null)
@@ -57,18 +60,35 @@ public class Track implements ITrack {
 
 	@Override
 	public IEvent getFirst() {
-		while (this.first.getPrevious() != null) {
+		if (this.first.getPrevious() != null) {
 			this.first = this.first.getPrevious();
+			this.trackInterval = null;
+			while (this.first.getPrevious() != null) {
+				this.first = this.first.getPrevious();
+			}
 		}
 		return this.first;
 	}
 
 	@Override
 	public IEvent getLast() {
-		while (this.last.getNext() != null) {
+		if (this.last.getNext() != null) {
 			this.last = this.last.getNext();
+			this.trackInterval = null;
+			while (this.last.getNext() != null) {
+				this.last = this.last.getNext();
+			}
 		}
 		return this.last;
+	}
+
+	@Override
+	public Interval getTimePeriod() {
+		if (this.trackInterval == null) {
+			this.trackInterval = new Interval(this.getStartTimeMillis(),
+					this.getEndTimeMillis());
+		}
+		return this.trackInterval;
 	}
 
 }

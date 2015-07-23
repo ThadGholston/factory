@@ -14,8 +14,17 @@ import edu.gsu.dmlab.imageproc.interfaces.IHistogramProducer;
 
 public class HistogramProducer implements IHistogramProducer {
 
+	float ranges[][] = { { (float) 0.75, (float) 8.3 },
+			{ (float) 0, (float) 256 }, { (float) 0, (float) 52 },
+			{ (float) 0.75, (float) 2 }, { (float) 0, (float) 14 },
+			{ (float) 0, (float) 150 }, { (float) -0.05, (float) 0.175 },
+			{ (float) -0.0001, (float) 0.005 }, { (float) 0, (float) 10 },
+			{ (float) -0.0001, (float) 0.05 } };
+	int histSize = 15;
+
 	int[] wavelenghts;
 	IImageDBConnection imageDB;
+	int count = 0;
 
 	public HistogramProducer(IImageDBConnection imageDB, int[] wavelengths) {
 		if (imageDB == null)
@@ -30,7 +39,7 @@ public class HistogramProducer implements IHistogramProducer {
 	}
 
 	// make sure to pass dims in as wavelength/parameter pairs
-	public Mat getHist(IEvent event, int[][] dims, boolean left) {
+	public void getHist(Mat retMat, IEvent event, int[][] dims, boolean left) {
 
 		// Get the image parameters for each wavelength in the set of dimensions
 		ArrayList<float[][][]> paramsList = new ArrayList<float[][][]>();
@@ -59,10 +68,10 @@ public class HistogramProducer implements IHistogramProducer {
 					vals[i] = paramsList.get(i)[x][y][dims[i][1] - 1];
 				}
 				m.put(y, x, vals);
+				vals = null;
 			}
 		}
 		paramsList.clear();
-		paramsList = null;
 		// for some reason the calcHist function wants a list of mat for the
 		// input
 		List<Mat> matsForHistFunction = new ArrayList<Mat>();
@@ -75,10 +84,12 @@ public class HistogramProducer implements IHistogramProducer {
 		MatOfFloat rangesMat = new MatOfFloat();
 		for (int i = 0; i < depth; i++) {
 			channelsArr[i] = i;
-			histSizeArr[i] = histSize;
+			histSizeArr[i] = this.histSize;
 			// the params in dims go from 1 to 10 but the array index
 			// of ranges goes from 0 to 9 so subtract 1.
-			rangesMat.push_back(new MatOfFloat(ranges[dims[i][1] - 1]));
+			MatOfFloat rng = new MatOfFloat(this.ranges[dims[i][1] - 1]);
+			rangesMat.push_back(rng);
+			rng.release();
 		}
 		MatOfInt channels = new MatOfInt(channelsArr);
 		MatOfInt histSizes = new MatOfInt(histSizeArr);
@@ -91,26 +102,14 @@ public class HistogramProducer implements IHistogramProducer {
 				histSizes, rangesMat);
 
 		// cleanup hopefully invoked a little faster with the null pointers.
-		m.release();
-		m = null;
-		mask.release();
-		mask = null;
-
 		matsForHistFunction.clear();
-		matsForHistFunction = null;
 
+		m.release();
+		mask.release();
 		rangesMat.release();
-		rangesMat = null;
-
 		channels.release();
-		channels = null;
-
 		histSizes.release();
-		histSizes = null;
-
-		channelsArr = null;
-		histSizeArr = null;
-		// System.gc();
-		return currHist;
+		currHist.assignTo(retMat);
+		currHist.release();
 	}
 }

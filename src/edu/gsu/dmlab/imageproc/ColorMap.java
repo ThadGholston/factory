@@ -21,7 +21,6 @@
 package edu.gsu.dmlab.imageproc;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
@@ -175,7 +174,7 @@ public abstract class ColorMap {
 				: colormap == COLORMAP.BONE ? (ColorMap) (new Bone())
 						: colormap == COLORMAP.JET ? (ColorMap) (new Jet())
 								: colormap == COLORMAP.WINTER ? (ColorMap) (new Winter())
-								: null;
+										: null;
 
 		if (cm != null) {
 			cm.apply(src, dst);
