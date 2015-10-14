@@ -18,7 +18,6 @@ import edu.gsu.dmlab.databases.ImageDBConnection;
 import edu.gsu.dmlab.databases.TrackingResultFileReader;
 import edu.gsu.dmlab.databases.interfaces.IImageDBConnection;
 import edu.gsu.dmlab.datatypes.interfaces.IEvent;
-import edu.gsu.dmlab.datatypes.interfaces.IRegion;
 import edu.gsu.dmlab.datatypes.interfaces.ITrack;
 import edu.gsu.dmlab.imageproc.HistogramProducer;
 import edu.gsu.dmlab.imageproc.interfaces.IHistogramProducer;
@@ -30,9 +29,22 @@ import edu.gsu.dmlab.util.TrapezoidPositionPredictor;
 import edu.gsu.dmlab.util.interfaces.IPositionPredictor;
 import org.apache.commons.configuration.Configuration;
 
+import java.io.IOException;
+
+import javax.sql.DataSource;
+
+import edu.gsu.dmlab.databases.ImageDBConnection;
+import edu.gsu.dmlab.databases.TrackingResultFileReader;
+import edu.gsu.dmlab.databases.interfaces.IImageDBConnection;
+import edu.gsu.dmlab.datatypes.interfaces.ITrack;
+import edu.gsu.dmlab.imageproc.HistogramProducer;
+import edu.gsu.dmlab.imageproc.interfaces.IHistogramProducer;
+import edu.gsu.dmlab.util.TrapezoidPositionPredictor;
+import edu.gsu.dmlab.util.interfaces.IPositionPredictor;
+
 public class ObjectFactory {
 	public static IImageDBConnection getImageDBConnection(DataSource dsourc,
-			int maxCacheSize) {
+														  int maxCacheSize) {
 		IImageDBConnection dbConn = new ImageDBConnection(dsourc, maxCacheSize);
 		return dbConn;
 	}
@@ -43,7 +55,7 @@ public class ObjectFactory {
 	}
 
 	public static ITrack[] getTrackedResults(String type, String fileLocation,
-			int span) {
+											 int span) {
 		TrackingResultFileReader reader = new TrackingResultFileReader(
 				fileLocation, span);
 
@@ -55,17 +67,8 @@ public class ObjectFactory {
 		}
 		return null;
 	}
-	
+
 	public static IPositionPredictor getPositionPredictor(int typeId) {
 		return new TrapezoidPositionPredictor();
 	}
-
-	public static IEventIndexer GetBasicEventIndexer(Configuration configuration, ArrayList<IEvent> events, IRegion region){
-		return new MatrixBasedEventIndexer(configuration, events, region);
-	}
-
-	public static ITrackIndexer GetBasicTrackIndexer(int regionalDimension, int regionalDivisor, ArrayList<ITrack> tracks, IRegion regionalTracksStart, IRegion regionalTracksEnd){
-		return new MatrixBasedTrackIndexer(regionalDimension, regionalDivisor, tracks, regionalTracksStart, regionalTracksEnd);
-	}
-
 }

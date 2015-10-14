@@ -2,99 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="c42d1c63-e7fa-4fa7-9af8-adce9c75c6c5" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/edu/gsu/dmlab/indexes/interfaces/AbstractMatrixRangeIndexer.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/edu/gsu/dmlab/stages/interfaces/BaseUpperStage.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/edu/gsu/dmlab/geometry/Circle2D.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/edu/gsu/dmlab/geometry/Circle2F.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/tests/util/ConvertersTest.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/tests/conversion/CoordinateSystemConverterTest.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/tests/util/CoordinateSystemConverterTest.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/edu/gsu/dmlab/graph/algo/DeltaStepping.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/edu/gsu/dmlab/graph/Edge.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/edu/gsu/dmlab/trash/EventIndexer.txt" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/tests/datatypes/GenaricEventTest.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/edu/gsu/dmlab/trash/IEdgeFactory.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/edu/gsu/dmlab/indexes/interfaces/IEventIndexer.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/tests/indexes/IEventIndexerTests.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/tests/datatypes/IEventTest.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/edu/gsu/dmlab/indexes/interfaces/IRangeIndexer.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/edu/gsu/dmlab/trash/IRegion.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/edu/gsu/dmlab/indexes/interfaces/ITrackIndexer.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/tests/indexes/ITrackIndexerTests.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/edu/gsu/dmlab/tracking/interfaces/ITracking.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/tests/databases/ImageDBConnectionTests.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/tests/util/ImageDecoderTest.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/edu/gsu/dmlab/tracking/IterativeTracking.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/edu/gsu/dmlab/config/IterativeTrackingConfig.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/edu/gsu/dmlab/trash/MatRegion.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/edu/gsu/dmlab/geometry/Matrix3D.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/tests/datatypes/Matrix3DTest.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/edu/gsu/dmlab/indexes/MatrixBasedEventIndexer.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/edu/gsu/dmlab/indexes/MatrixBasedTrackIndexer.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_google_guava_guava_18_0.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_googlecode_efficient_java_matrix_library_ejml_0_23.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_io7m_xom_xom_1_2_10.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__commons_configuration_commons_configuration_1_10.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__commons_lang_commons_lang_2_6.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__commons_logging_commons_logging_1_1_1.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__de_jollyday_jollyday_0_4_7.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__edu_stanford_nlp_stanford_corenlp_3_5_2.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__javax_json_javax_json_api_1_0.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__javax_xml_bind_jaxb_api_2_2_7.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__joda_time_joda_time_2_7.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__junit_junit_4_12.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__mysql_mysql_connector_java_5_1_35.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__net_snaq_dbpool_7_0_jdk7.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_apache_commons_commons_math3_3_4_1.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_hamcrest_hamcrest_core_1_3.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_jgrapht_jgrapht_core_0_9_1.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_mockito_mockito_all_1_9_5.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_mockito_mockito_core_1_9_5.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_slf4j_slf4j_api_1_7_12.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_slf4j_slf4j_simple_1_7_12.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__xalan_xalan_2_7_0.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__xerces_xercesImpl_2_8_0.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__xml_apis_xml_apis_1_3_03.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/edu/gsu/dmlab/geometry/Point2D.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/edu/gsu/dmlab/geometry/Point2F.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/edu/gsu/dmlab/geometry/Point2I.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/original-tracking/README" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/edu/gsu/dmlab/geometry/README" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/edu/gsu/dmlab/geometry/Rectangle2D.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/edu/gsu/dmlab/geometry/Rectangle2F.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/edu/gsu/dmlab/stages/interfaces/Stage.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/edu/gsu/dmlab/stages/StageOne.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/edu/gsu/dmlab/stages/StageThree.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/edu/gsu/dmlab/stages/StageTwo.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/edu/gsu/dmlab/graph/algo/SuccessiveShortestPaths.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/edu/gsu/dmlab/trash/TrackIndexer.txt" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/edu/gsu/dmlab/datatypes/TrackRelation.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/tests/datatypes/TrackTest.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/tests/databases/TrackingResultFileReaderTests.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/tests/util/TrapezoidPositionPredictorTest.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/edu/gsu/dmlab/util/Utility.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/edu/gsu/dmlab/trash/WeightedEdge.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/edu/gsu/dmlab/imageproc/colormaps/Autumn.java" afterPath="$PROJECT_DIR$/src/edu/gsu/dmlab/imageproc/colormaps/Autumn.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/edu/gsu/dmlab/imageproc/colormaps/Bone.java" afterPath="$PROJECT_DIR$/src/edu/gsu/dmlab/imageproc/colormaps/Bone.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/edu/gsu/dmlab/imageproc/ColorMap.java" afterPath="$PROJECT_DIR$/src/edu/gsu/dmlab/imageproc/ColorMap.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/edu/gsu/dmlab/conversion/CoordinateSystemConverter.java" afterPath="$PROJECT_DIR$/src/edu/gsu/dmlab/conversion/CoordinateSystemConverter.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/edu/gsu/dmlab/util/CoordinateSystemConverter.java" afterPath="$PROJECT_DIR$/src/edu/gsu/dmlab/util/CoordinateSystemConverter.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/edu/gsu/dmlab/datatypes/GenaricEvent.java" afterPath="$PROJECT_DIR$/src/edu/gsu/dmlab/datatypes/GenaricEvent.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/edu/gsu/dmlab/imageproc/HistogramProducer.java" afterPath="$PROJECT_DIR$/src/edu/gsu/dmlab/imageproc/HistogramProducer.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/edu/gsu/dmlab/datatypes/interfaces/IBaseDataType.java" afterPath="$PROJECT_DIR$/src/edu/gsu/dmlab/datatypes/interfaces/IBaseDataType.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/edu/gsu/dmlab/datatypes/interfaces/IEvent.java" afterPath="$PROJECT_DIR$/src/edu/gsu/dmlab/datatypes/interfaces/IEvent.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/edu/gsu/dmlab/imageproc/interfaces/IHistogramProducer.java" afterPath="$PROJECT_DIR$/src/edu/gsu/dmlab/imageproc/interfaces/IHistogramProducer.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/edu/gsu/dmlab/databases/interfaces/IImageDBConnection.java" afterPath="$PROJECT_DIR$/src/edu/gsu/dmlab/databases/interfaces/IImageDBConnection.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/edu/gsu/dmlab/util/interfaces/IPositionPredictor.java" afterPath="$PROJECT_DIR$/src/edu/gsu/dmlab/util/interfaces/IPositionPredictor.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/edu/gsu/dmlab/datatypes/interfaces/ITrack.java" afterPath="$PROJECT_DIR$/src/edu/gsu/dmlab/datatypes/interfaces/ITrack.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/edu/gsu/dmlab/databases/ImageDBConnection.java" afterPath="$PROJECT_DIR$/src/edu/gsu/dmlab/databases/ImageDBConnection.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/edu/gsu/dmlab/imageproc/colormaps/Jet.java" afterPath="$PROJECT_DIR$/src/edu/gsu/dmlab/imageproc/colormaps/Jet.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/edu/gsu/dmlab/ObjectFactory.java" afterPath="$PROJECT_DIR$/src/edu/gsu/dmlab/ObjectFactory.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/edu/gsu/dmlab/datatypes/Track.java" afterPath="$PROJECT_DIR$/src/edu/gsu/dmlab/datatypes/Track.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/edu/gsu/dmlab/databases/TrackingResultFileReader.java" afterPath="$PROJECT_DIR$/src/edu/gsu/dmlab/databases/TrackingResultFileReader.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/edu/gsu/dmlab/util/TrapezoidPositionPredictor.java" afterPath="$PROJECT_DIR$/src/edu/gsu/dmlab/util/TrapezoidPositionPredictor.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/edu/gsu/dmlab/imageproc/colormaps/Winter.java" afterPath="$PROJECT_DIR$/src/edu/gsu/dmlab/imageproc/colormaps/Winter.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/pom.xml" afterPath="$PROJECT_DIR$/pom.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="factory.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -115,40 +24,7 @@
     <favorites_list name="factory" />
   </component>
   <component name="FileEditorManager">
-    <leaf>
-      <file leaf-file-name="ObjectFactory.java" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/edu/gsu/dmlab/ObjectFactory.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="36" column="20" selection-start-line="36" selection-start-column="20" selection-end-line="36" selection-end-column="20" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="pom.xml" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/pom.xml">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.70692194">
-              <caret line="63" column="21" selection-start-line="63" selection-start-column="21" selection-end-line="63" selection-end-column="21" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="TrackTest.java" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/tests/datatypes/TrackTest.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="12" column="3" selection-start-line="12" selection-start-column="3" selection-end-line="12" selection-end-column="3" />
-              <folding>
-                <element signature="imports" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-    </leaf>
+    <leaf />
   </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
@@ -201,7 +77,6 @@
         <option value="$PROJECT_DIR$/src/edu/gsu/dmlab/stages/StageThree.java" />
         <option value="$PROJECT_DIR$/src/edu/gsu/dmlab/stages/StageOne.java" />
         <option value="$PROJECT_DIR$/src/edu/gsu/dmlab/tracking/IterativeTracking.java" />
-        <option value="$PROJECT_DIR$/src/edu/gsu/dmlab/ObjectFactory.java" />
         <option value="$PROJECT_DIR$/src/edu/gsu/dmlab/indexes/interfaces/IRange.java" />
         <option value="$PROJECT_DIR$/src/edu/gsu/dmlab/datatypes/MatRegion.java" />
         <option value="$PROJECT_DIR$/src/edu/gsu/dmlab/datatypes/interfaces/ITrack.java" />
@@ -221,6 +96,7 @@
         <option value="$PROJECT_DIR$/src/tests/datatypes/TrackTest.java" />
         <option value="$PROJECT_DIR$/src/edu/gsu/dmlab/graph/algo/Edge.java" />
         <option value="$PROJECT_DIR$/pom.xml" />
+        <option value="$PROJECT_DIR$/src/edu/gsu/dmlab/ObjectFactory.java" />
       </list>
     </option>
   </component>
@@ -267,7 +143,8 @@
       <sortByType />
     </navigator>
     <panes>
-      <pane id="Scope" />
+      <pane id="PackagesPane" />
+      <pane id="Scratches" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -288,8 +165,7 @@
           </PATH>
         </subPane>
       </pane>
-      <pane id="PackagesPane" />
-      <pane id="Scratches" />
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -593,7 +469,7 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="23" width="1440" height="797" extended-state="0" />
-    <editor active="true" />
+    <editor active="false" />
     <layout>
       <window_info id="UI Designer" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Palette&#9;" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
@@ -605,7 +481,7 @@
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.24892704" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.2067239" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.2067239" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32916668" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32907802" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
@@ -615,9 +491,9 @@
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.30921987" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
-      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
     </layout>
     <layout-to-restore>
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
@@ -636,13 +512,13 @@
       <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.30921987" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.2521127" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.24892704" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.16666667" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
+      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
     </layout-to-restore>
   </component>
   <component name="Vcs.Log.UiProperties">
@@ -1010,11 +886,22 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/pom.xml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="1.3917526">
+          <caret line="63" column="21" selection-start-line="63" selection-start-column="21" selection-end-line="63" selection-end-column="21" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/edu/gsu/dmlab/ObjectFactory.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="36" column="20" selection-start-line="36" selection-start-column="20" selection-end-line="36" selection-end-column="20" />
-          <folding />
+        <state vertical-scroll-proportion="0.26509574">
+          <caret line="20" column="0" selection-start-line="20" selection-start-column="0" selection-end-line="20" selection-end-column="0" />
+          <folding>
+            <element signature="e#2512#2513#0" expanded="true" />
+            <element signature="e#2558#2559#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -1025,14 +912,6 @@
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/pom.xml">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.70692194">
-          <caret line="63" column="21" selection-start-line="63" selection-start-column="21" selection-end-line="63" selection-end-column="21" />
-          <folding />
         </state>
       </provider>
     </entry>
