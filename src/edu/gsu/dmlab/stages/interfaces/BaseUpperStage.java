@@ -1,7 +1,7 @@
 package edu.gsu.dmlab.stages.interfaces;
 
 import edu.gsu.dmlab.graph.algo.SuccessiveShortestPaths;
-import edu.gsu.dmlab.graph.algo.Edge;
+import edu.gsu.dmlab.graph.Edge;
 import edu.gsu.dmlab.datatypes.TrackRelation;
 import edu.gsu.dmlab.geometry.Point2D;
 import edu.gsu.dmlab.geometry.Rectangle2D;

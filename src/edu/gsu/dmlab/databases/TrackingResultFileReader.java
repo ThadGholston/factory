@@ -54,7 +54,7 @@ public class TrackingResultFileReader {
 			int lastTrackId = 0;
 			int count = 0;
 			IEvent lastEvent = null;
-			ITrack track = new Track();
+			ITrack track = null;
 			while ((line = in.readLine()) != null) {
 				String[] lineSplit = line.split("\t");
 				if (lineSplit.length > 6) {
@@ -92,7 +92,11 @@ public class TrackingResultFileReader {
 							this.getRect(hpc_bbox_poly), hpc_ccode,
 							eventTypeString);
 					if (trackId == lastTrackId) {
-						track.add(ev);
+						if (track == null) {
+							track = new Track(ev);
+						} else {
+							track.add(ev);
+						}
 						Interval tmpRange = lastEvent.getTimePeriod();
 						Interval newRange = tmpRange.withEndMillis(range
 								.getEndMillis());
@@ -103,7 +107,7 @@ public class TrackingResultFileReader {
 						lastEvent = ev;
 					} else {
 						tmpList.add(track);
-						track = new Track();
+						track = null;
 						lastEvent = ev;
 						lastTrackId = trackId;
 					}

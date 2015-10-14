@@ -11,6 +11,7 @@ package edu.gsu.dmlab.datatypes;
 
 import java.util.UUID;
 
+import edu.gsu.dmlab.datatypes.interfaces.IBaseDataType;
 import edu.gsu.dmlab.geometry.Point2D;
 import edu.gsu.dmlab.geometry.Rectangle2D;
 import org.joda.time.Interval;
@@ -105,6 +106,11 @@ public class GenaricEvent implements IEvent {
 	@Override
 	public Interval getTimePeriod() {
 		return this.timePeriod;
+	}
+
+	@Override
+	public int compareTime(IBaseDataType baseDataType) {
+		return this.getTimePeriod().getStart().compareTo(baseDataType.getTimePeriod().getStart());
 	}
 
 	/*

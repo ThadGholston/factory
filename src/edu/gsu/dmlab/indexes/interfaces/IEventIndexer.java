@@ -10,7 +10,7 @@ import java.util.ArrayList;
 /**
  * Created by thad on 9/21/15.
  */
-public interface IEventIndexer {
+public interface IEventIndexer extends IIndexer {
     int getExpectedChangePerFrame(Interval timePeriod);
     ArrayList<IEvent> getEventsInNeighborhood(DateTime begin, DateTime end, ArrayList<Point2D> searchArea, double neighborHoodMultiply);
 }

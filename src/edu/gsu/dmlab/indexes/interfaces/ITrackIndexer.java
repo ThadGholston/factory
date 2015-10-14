@@ -9,7 +9,7 @@ import java.util.ArrayList;
 /**
  * Created by thad on 9/19/15.
  */
-public interface ITrackIndexer {
+public interface ITrackIndexer extends IIndexer{
     ArrayList<ITrack> getTracksStartBetween(DateTime begin, DateTime end, Point2D[] searchArea);
     ArrayList<ITrack> getTracksEndBetween(DateTime begin, DateTime end, Point2D[] searchArea);
     ArrayList<ITrack> getAll();

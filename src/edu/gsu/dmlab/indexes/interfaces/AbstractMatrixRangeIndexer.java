@@ -11,7 +11,7 @@ import java.util.ArrayList;
 /**
  * Created by thad on 10/11/15.
  */
-public class AbstractMatrixRangeIndexer<T extends IBaseDataType> implements IRangeIndexer<T> {
+public class AbstractMatrixRangeIndexer<T extends IBaseDataType> implements IIndexer<T> {
 
     protected ArrayList<T> list;
     protected TList[][] matrix;

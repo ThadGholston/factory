@@ -8,7 +8,7 @@ import java.util.ArrayList;
 /**
  * Created by thad on 10/11/15.
  */
-public interface IRangeIndexer<T> {
+public interface IIndexer<T> {
     public ArrayList<T> getBetween(DateTime start, DateTime end);
 
     public ArrayList<T> getBetween(DateTime start, DateTime end, Point2D[] searchArea);

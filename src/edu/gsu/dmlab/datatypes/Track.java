@@ -19,15 +19,15 @@ import edu.gsu.dmlab.datatypes.interfaces.ITrack;
 
 public class Track extends ArrayList<IEvent> implements ITrack {
 
-    public Track(IEvent event){
+    public Track(IEvent event) {
         this.add(event);
     }
 
-    public Track(Collection<IEvent> events){
+    public Track(Collection<IEvent> events) {
         this.addAll(events);
     }
 
-    public Track(Collection<IEvent> events1, Collection<IEvent> events2){
+    public Track(Collection<IEvent> events1, Collection<IEvent> events2) {
         this.addAll(events1);
         this.addAll(events2);
     }

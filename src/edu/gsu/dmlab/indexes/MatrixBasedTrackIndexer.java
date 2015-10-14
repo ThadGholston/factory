@@ -15,7 +15,7 @@ import java.util.stream.IntStream;
 /**
  * Created by thad on 10/11/15.
  */
-public class MatrixBasedTrackIndexer extends AbstractMatrixRangeIndexer<ITrack> implements ITrackIndexer {
+public class MatrixBasedTrackIndexer extends AbstractMatrixRangeIndexer implements ITrackIndexer {
 
     private TList[][] matrixEnd;
     private int regionDimension;
@@ -29,7 +29,7 @@ public class MatrixBasedTrackIndexer extends AbstractMatrixRangeIndexer<ITrack> 
         // matrix = new TList[regionDimension][regionDimension];
         // matrixEnd = new TList[regionDimension][regionDimension];
         list.parallelStream().forEach(track -> {
-            indexTrack(track);
+            indexTrack((ITrack) track);
         });
     }
 
