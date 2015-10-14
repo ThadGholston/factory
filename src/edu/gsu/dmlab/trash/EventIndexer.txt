@@ -1,0 +1,251 @@
+package edu.gsu.dmlab.indexes;
+
+import edu.gsu.dmlab.geometry.Matrix3D;
+import edu.gsu.dmlab.geometry.Circle2D;
+import edu.gsu.dmlab.geometry.Point2D;
+import edu.gsu.dmlab.geometry.Rectangle2D;
+import edu.gsu.dmlab.datatypes.interfaces.IEvent;
+import edu.gsu.dmlab.datatypes.interfaces.IRegion;
+import edu.gsu.dmlab.indexes.interfaces.IEventIndexer;
+import edu.gsu.dmlab.util.Utility;
+import org.apache.commons.configuration.Configuration;
+import org.joda.time.DateTime;
+import org.joda.time.Duration;
+import org.joda.time.Interval;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.stream.IntStream;
+
+/**
+ * Created by thad on 9/21/15.
+ */
+public class EventIndexer implements IEventIndexer {
+
+    private int regionDimension;
+    private int regionDivisor;
+    private Interval frameSpan;
+    private Interval globalTimePeriod;
+    private IRegion regionalEvents;
+    private ArrayList<ArrayList<IEvent>> frames;
+
+    public EventIndexer(Configuration configuration, ArrayList<IEvent> events, IRegion region) {
+        this.regionalEvents = region;
+        this.indexEvents(events);
+    }
+
+    private void indexEvents(ArrayList<IEvent> events) {
+        //create a 2d array of vectors to store pointers of the events in.
+        //this will be used for finding events in a region defined by a
+        //polygon.
+
+
+        //put events into regional arrays for searching by shape
+        for (IEvent event : events) {
+            Point2D[] shape = event.getShape();
+            Point2D[] searchArea = new Point2D[shape.length];
+
+            for (int index = 0; index < shape.length; index++) {
+                Point2D point = shape[index];
+                Point2D scaledPoint = new Point2D(point.getX() / this.regionDivisor, point.getY() / this.regionDivisor);
+                searchArea[index] = scaledPoint;
+            }
+
+            Rectangle2D rectangle = Utility.getBoundingBox(searchArea);
+
+            IntStream.range((int) rectangle.getMinX(), (int) rectangle.getMaxX()).parallel().forEach(x -> {
+                IntStream.range((int) rectangle.getMinY(), (int) rectangle.getMaxX()).parallel().forEach(y -> {
+                    if (Utility.isInsideSearchArea(new Point2D(x, y), searchArea)) {
+                        regionalEvents.add(x, y, event);
+                    }
+                });
+            });
+        }
+
+
+        //index based upon time so we can quickly calculate the rolling average of events per frame
+        //so we can have an expected number of events per frame with resonable accuracy
+        for (IEvent event : events) {
+                    /*	cout << "Ev period: " << ev->getTimePeriod() << endl;*/
+            ArrayList<Integer> frameIndexArrayList = this.getIndex(event.getTimePeriod());
+            for (int idx : frameIndexArrayList) {
+                this.frames.get(idx).add(event);
+            }
+
+        }
+
+        //sort all the vectors corresponding to regions for faster searching each region based on time
+        regionalEvents.sort3Dimesion(new Comparator<IEvent>() {
+            @Override
+            public int compare(IEvent o1, IEvent o2) {
+                return o1.getTimePeriod().getStart().compareTo(o2.getTimePeriod().getStart());
+            }
+        });
+    }
+
+    @Override
+    public int getExpectedChangePerFrame(Interval timePeriod) {
+        if (globalTimePeriod.overlaps(timePeriod)) {
+            Interval overlap = globalTimePeriod.overlap(timePeriod);
+            ArrayList<Integer> periods = getIndex(overlap);
+            double sum = 0;
+            if (periods.size() > 1) {
+                ArrayList<IEvent> events = frames.get(periods.get(0));
+                double lastValue = events.size();
+                for (int period : periods) {
+                    events = this.frames.get(periods.get(period));
+                    double currentValue = events.size();
+                    sum += Math.abs(currentValue - lastValue);
+                    lastValue = currentValue;
+                }
+                return (int) sum / periods.size();
+            }
+        }
+        return 0;
+    }
+
+    private ArrayList<Integer> getIndex(Interval timePeriod) {
+        //TODO: Make sure all calculations here are right and move to its own method
+        ArrayList<Integer> returnArrayList = new ArrayList<>();
+        if (globalTimePeriod == null) {
+            int length = (int) (timePeriod.toDurationMillis() / 1000) / (int) (this.frameSpan.toDurationMillis() / 1000);
+            Interval end = null;// = timePeriod.getStart().plus(this.frameSpan * length + this.frameSpan);
+            this.globalTimePeriod = new Interval(timePeriod.getStart(), end.getEnd());
+            this.frames = new ArrayList<ArrayList<IEvent>>();
+            addArraysLists(length + 1, false);
+        }
+
+        if (this.globalTimePeriod.getStart().isAfter(timePeriod.getEnd())) {
+            long timeDifference = (globalTimePeriod.getEnd().getMillis() - timePeriod.getStart().getMillis()) / 1000;
+            int length = (int) (timeDifference / ((frameSpan.getEndMillis() / 1000 - frameSpan.getStartMillis()) / 1000));
+            int totalDuration = (int) (this.frameSpan.getEndMillis() - this.frameSpan.getStartMillis()) / 1000;
+            DateTime start = this.globalTimePeriod.getStart().minus(totalDuration * length).plus(totalDuration);
+            Interval oldGlobalTimePeriod = this.globalTimePeriod;
+            this.globalTimePeriod = new Interval(start, oldGlobalTimePeriod.getEnd());
+            addArraysLists(length + 1, true);
+        }
+
+        if (this.globalTimePeriod.getEnd().isBefore(timePeriod.getEnd())) {
+            long timeDifference = (timePeriod.getEnd().getMillis() - globalTimePeriod.getStart().getMillis()) / 1000;
+            int length = (int) (timeDifference / ((frameSpan.getEndMillis() / 1000 - frameSpan.getStartMillis()) / 1000));
+            int totalDuration = (int) (this.frameSpan.getEndMillis() - this.frameSpan.getStartMillis()) / 1000;
+            DateTime end = this.globalTimePeriod.getEnd().minus(totalDuration * length).plus(totalDuration);
+            Interval oldGlobalTimePeriod = this.globalTimePeriod;
+            this.globalTimePeriod = new Interval(oldGlobalTimePeriod.getStart(), end);
+            addArraysLists(length + 1, false);
+        }
+
+        Interval timeDifference = timePeriod.overlap(this.globalTimePeriod);
+        long timeDuration = timeDifference.toDurationMillis() / 1000;
+        int beginIndex = (int) (timeDuration / (this.frameSpan.toDurationMillis() / 1000));
+        int endIndex = (int) (beginIndex + ((timePeriod.toDurationMillis() / 1000) / (this.frameSpan.toDurationMillis() / 1000)));
+        for (int i = beginIndex; i <= endIndex; i++) {
+            Duration afterIndexStart = new Duration(this.frameSpan.toDurationMillis() * i);
+            Interval indexTimePeriod = new Interval(this.globalTimePeriod.getStart().plus(afterIndexStart), this.globalTimePeriod.getStart().plus(afterIndexStart).plus(this.frameSpan.toDurationMillis()));
+            if (timePeriod.overlaps(indexTimePeriod)) {
+                returnArrayList.add(i);
+            }
+        }
+        return returnArrayList;
+    }
+
+    private void addArraysLists(int number, boolean front) {
+
+        //if we are adding to the front of the frames vector
+        if (front) {
+
+            //hold onto the old frames vector
+            ArrayList<ArrayList<IEvent>> oldArrayLists = this.frames;
+
+            //create a new frames vector to add to
+            this.frames = new ArrayList<ArrayList<IEvent>>();
+
+            //push the number of new vectors onto the new list that we need.
+            for (int i = 0; i < number; i++) {
+                ArrayList<IEvent> evntVect = new ArrayList<IEvent>();
+                this.frames.add(evntVect);
+            }
+
+            //push on the vectors from the old set as well
+            for (int i = 0; i < oldArrayLists.size(); i++) {
+                this.frames.add(oldArrayLists.get(i));
+            }
+        } else {
+            //we just push new vectors onto the frames vector
+            for (int i = 0; i < number; i++) {
+                ArrayList<IEvent> evntVect = new ArrayList<IEvent>();
+                this.frames.add(evntVect);
+            }
+        }
+    }
+
+    @Override
+    public ArrayList<IEvent> getEventsBetween(DateTime begin, DateTime end) {
+        ArrayList<IEvent> results = new ArrayList<>();
+        Interval timePeriod = new Interval(begin, end);
+        if (!this.globalTimePeriod.overlaps(timePeriod)) {
+            return results;
+        }
+
+        Interval seachPeriod = this.globalTimePeriod.overlap(timePeriod);
+        ArrayList<Integer> relevantPeriods = getIndex(seachPeriod);
+        for (int period : relevantPeriods) {
+            ArrayList<IEvent> events = this.frames.get(relevantPeriods.get(period));
+            for (IEvent event : events) {
+                if (event.getTimePeriod().overlaps(timePeriod) && !results.contains(events)) {
+                    results.add(event);
+                }
+            }
+        }
+        return results;
+    }
+
+
+    @Override
+    public ArrayList<IEvent> getEventsBetween(DateTime begin, DateTime end, ArrayList<Point2D> searchArea) {
+        ArrayList<IEvent> results = new ArrayList<>();
+        Interval timePeriod = new Interval(begin, end);
+        if (!this.globalTimePeriod.overlaps(timePeriod)) {
+            return results;
+        }
+        Point2D[] scaledSearchArea = Utility.getScaledSearchArea(searchArea, regionDivisor);
+        Rectangle2D scaledBoundingBox = Utility.getBoundingBox(scaledSearchArea);
+        return regionalEvents.searchForElementsInSpaceAndTime(timePeriod, scaledBoundingBox, scaledSearchArea);
+    }
+
+    @Override
+    public ArrayList<IEvent> getEventsInNeighborhood(DateTime begin, DateTime end, ArrayList<Point2D> searchArea, double neighborHoodMultiply) {
+        ArrayList<IEvent> results = new ArrayList<>();
+        Point2D[] scaledSearchArea = Utility.getScaledSearchArea(searchArea, regionDivisor);
+
+        Circle2D circle = Utility.getMiniumEnclosingCircle(scaledSearchArea);
+        Point2D center = new Point2D(circle.getCenterX(), circle.getCenterY());
+        double radius = circle.getWidth() / 2;
+        double circumference = 2 * Math.PI * radius;
+        double halvefOfCircle = circumference / 2;
+        double quarterOfCircle = halvefOfCircle / 2;
+        Point2D[] neighborhoodPolygon = new Point2D[(int) halvefOfCircle];
+        for (int i = 0; i < halvefOfCircle; i++) {
+            double theta = 1 / quarterOfCircle;
+            int x = (int) (center.x + radius * Math.cos(theta));
+            int y = (int) (center.y + radius * Math.sin(theta));
+            Point2D point = new Point2D(x, y);
+            neighborhoodPolygon[i] = point;
+        }
+
+        Rectangle2D neighbodhoodBox = Utility.getBoundingBox(neighborhoodPolygon);
+        Interval timePeriod = new Interval(begin, end);
+
+        return regionalEvents.searchForElementsInRegion(neighbodhoodBox, neighborhoodPolygon);
+    }
+
+    @Override
+    public DateTime getFirstTime() {
+        return globalTimePeriod.getStart();
+    }
+
+    @Override
+    public DateTime getLastTime() {
+        return globalTimePeriod.getEnd();
+    }
+}

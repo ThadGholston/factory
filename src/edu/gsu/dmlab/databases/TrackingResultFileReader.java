@@ -17,9 +17,9 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
+import edu.gsu.dmlab.geometry.Point2D;
+import edu.gsu.dmlab.geometry.Rectangle2D;
 import org.joda.time.Interval;
-import org.opencv.core.Point;
-import org.opencv.core.Rect;
 
 import edu.gsu.dmlab.conversion.CoordinateSystemConverter;
 import edu.gsu.dmlab.datatypes.GenaricEvent;
@@ -54,7 +54,7 @@ public class TrackingResultFileReader {
 			int lastTrackId = 0;
 			int count = 0;
 			IEvent lastEvent = null;
-
+			ITrack track = new Track();
 			while ((line = in.readLine()) != null) {
 				String[] lineSplit = line.split("\t");
 				if (lineSplit.length > 6) {
@@ -70,10 +70,10 @@ public class TrackingResultFileReader {
 					hpc_coord_string = this.removeBrackets(hpc_coord_string);
 					hpc_bbox_string = this.removeBrackets(hpc_bbox_string);
 
-					Point tmp_coord = this.getPoint(hpc_coord_string);
-					Point[] hpc_bbox_poly = this.getPoly(hpc_bbox_string);
+					Point2D tmp_coord = this.getPoint(hpc_coord_string);
+					Point2D[] hpc_bbox_poly = this.getPoly(hpc_bbox_string);
 
-					Point[] hpc_ccode = null;
+					Point2D[] hpc_ccode = null;
 					if (!hpc_ccode_string.isEmpty()) {
 						hpc_ccode_string = this
 								.removeBrackets(hpc_ccode_string);
@@ -92,8 +92,7 @@ public class TrackingResultFileReader {
 							this.getRect(hpc_bbox_poly), hpc_ccode,
 							eventTypeString);
 					if (trackId == lastTrackId) {
-						lastEvent.setNext(ev);
-						ev.setPrevious(lastEvent);
+						track.add(ev);
 						Interval tmpRange = lastEvent.getTimePeriod();
 						Interval newRange = tmpRange.withEndMillis(range
 								.getEndMillis());
@@ -103,8 +102,8 @@ public class TrackingResultFileReader {
 						lastEvent.updateTimePeriod(newRange);
 						lastEvent = ev;
 					} else {
-						ITrack track = new Track(ev, ev);
 						tmpList.add(track);
+						track = new Track();
 						lastEvent = ev;
 						lastTrackId = trackId;
 					}
@@ -133,16 +132,16 @@ public class TrackingResultFileReader {
 	 *            :the string to extract the points from
 	 * @return :returns the list of 2D points
 	 */
-	private Point[] getPoly(String pointsString) {
+	private Point2D[] getPoly(String pointsString) {
 		String[] pointsStrings = pointsString.split(",");
 		String xy;
-		ArrayList<Point> pointsList = new ArrayList<Point>();
+		ArrayList<Point2D> pointsList = new ArrayList<Point2D>();
 		for (int i = 0; i < pointsStrings.length; i++) {
 			xy = pointsStrings[i];
 			pointsList.add(this.getPoint(xy));
 		}
 
-		Point[] points = new Point[pointsList.size()];
+		Point2D[] points = new Point2D[pointsList.size()];
 		pointsList.toArray(points);
 		return points;
 	}
@@ -154,11 +153,11 @@ public class TrackingResultFileReader {
 	 *            :input string containing x and y coordinate
 	 * @return :the 2D point extracted from the string
 	 */
-	private Point getPoint(String xy) {
+	private Point2D getPoint(String xy) {
 		int spaceIdx = xy.indexOf(' ');
 		double x = Double.parseDouble(xy.substring(0, spaceIdx));
 		double y = Double.parseDouble(xy.substring(spaceIdx));
-		return CoordinateSystemConverter.convertHPCToPixXY(new Point(x, y));
+		return (Point2D) CoordinateSystemConverter.convertHPCToPixXY(new Point2D(x, y));
 	}
 
 	/**
@@ -180,10 +179,10 @@ public class TrackingResultFileReader {
 		return in;
 	}
 
-	private Rect getRect(Point[] poly) {
+	private Rectangle2D getRect(Point2D[] poly) {
 		double minX, minY, maxX, maxY;
 
-		Point point = poly[0];
+		Point2D point = poly[0];
 		// Point2i point = this->convertToPixXY(pointf);
 		minX = point.x;
 		maxX = point.x;
@@ -203,7 +202,7 @@ public class TrackingResultFileReader {
 				maxY = point.y;
 		}
 
-		Rect rec = new Rect();
+		Rectangle2D rec = new Rectangle2D();
 		rec.x = (int) minX;
 		rec.y = (int) minY;
 		rec.height = (int) (maxY - minY);

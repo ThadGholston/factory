@@ -21,7 +21,7 @@ import java.sql.SQLException;
 
 public interface IImageDBConnection {
 	public float[][][] getImageParam(IEvent event, int wavelength,
-			boolean leftSide);
+									 boolean leftSide);
 
 	public Mat getFirstImage(Interval period, int wavelength)
 			throws SQLException;

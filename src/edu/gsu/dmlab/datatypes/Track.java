@@ -1,94 +1,70 @@
 /**
  * File: Track.java is the public object for event tracks processed by tracking algorithms
  * implemented by the Data Mining Lab at Georgia State University
- * 
- * @author Dustin Kempton
- * @version 05/12/2015 
- * @Owner Data Mining Lab, Georgia State University
  *
+ * @author Dustin Kempton
+ * @version 05/12/2015
+ * @Owner Data Mining Lab, Georgia State University
  */
 package edu.gsu.dmlab.datatypes;
 
-import java.util.ArrayList;
+import java.util.*;
 
+import edu.gsu.dmlab.datatypes.interfaces.IBaseDataType;
 import org.joda.time.Interval;
 
 import edu.gsu.dmlab.datatypes.interfaces.IEvent;
 import edu.gsu.dmlab.datatypes.interfaces.ITrack;
 
-public class Track implements ITrack {
 
-	IEvent first;
-	IEvent last;
-	Interval trackInterval = null;
+public class Track extends ArrayList<IEvent> implements ITrack {
 
-	public Track(IEvent first, IEvent last) {
-		if (first == null)
-			throw new IllegalArgumentException(
-					"IEvent first cannot be null in Track constructor.");
-		if (last == null)
-			throw new IllegalArgumentException(
-					"IEvent last cannot be null in Track constructor.");
+    public Track(IEvent event){
+        this.add(event);
+    }
 
-		this.first = first;
-		this.last = last;
-	}
+    public Track(Collection<IEvent> events){
+        this.addAll(events);
+    }
 
-	@Override
-	public long getStartTimeMillis() {
-		return this.getFirst().getTimePeriod().getStartMillis();
-	}
+    public Track(Collection<IEvent> events1, Collection<IEvent> events2){
+        this.addAll(events1);
+        this.addAll(events2);
+    }
 
-	@Override
-	public long getEndTimeMillis() {
-		return this.getLast().getTimePeriod().getEndMillis();
-	}
+    @Override
+    public long getStartTimeMillis() {
+        return this.getFirst().getTimePeriod().getStartMillis();
+    }
 
-	@Override
-	public IEvent[] getEvents() {
-		IEvent current = this.getFirst();
-		ArrayList<IEvent> list = new ArrayList<IEvent>();
-		do {
-			list.add(current);
-			current = current.getNext();
-		} while (!(current == null));
+    @Override
+    public long getEndTimeMillis() {
+        return this.getLast().getTimePeriod().getEndMillis();
+    }
 
-		IEvent[] results = new IEvent[list.size()];
-		list.toArray(results);
-		return results;
-	}
+    @Override
+    public IEvent[] getEvents() {
+        return (IEvent[]) this.toArray();
+    }
 
-	@Override
-	public IEvent getFirst() {
-		if (this.first.getPrevious() != null) {
-			this.first = this.first.getPrevious();
-			this.trackInterval = null;
-			while (this.first.getPrevious() != null) {
-				this.first = this.first.getPrevious();
-			}
-		}
-		return this.first;
-	}
+    @Override
+    public IEvent getFirst() {
+        return this.get(0);
+    }
 
-	@Override
-	public IEvent getLast() {
-		if (this.last.getNext() != null) {
-			this.last = this.last.getNext();
-			this.trackInterval = null;
-			while (this.last.getNext() != null) {
-				this.last = this.last.getNext();
-			}
-		}
-		return this.last;
-	}
+    @Override
+    public IEvent getLast() {
+        return this.get(this.size() - 1);
+    }
 
-	@Override
-	public Interval getTimePeriod() {
-		if (this.trackInterval == null) {
-			this.trackInterval = new Interval(this.getStartTimeMillis(),
-					this.getEndTimeMillis());
-		}
-		return this.trackInterval;
-	}
+    @Override
+    public Interval getTimePeriod() {
+        return new Interval(this.getStartTimeMillis(), this.getEndTimeMillis());
+    }
 
+    @Override
+    public int compareTime(IBaseDataType baseDataType) {
+        ITrack track = (ITrack) baseDataType;
+        return this.get(0).getTimePeriod().getStart().compareTo(track.getTimePeriod().getStart());
+    }
 }

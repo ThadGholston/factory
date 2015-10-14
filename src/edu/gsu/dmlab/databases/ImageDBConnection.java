@@ -1,5 +1,6 @@
 package edu.gsu.dmlab.databases;
 
+import java.awt.geom.Rectangle2D;
 import java.sql.Blob;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -13,7 +14,6 @@ import javax.sql.DataSource;
 import org.joda.time.Interval;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfByte;
-import org.opencv.core.Rect;
 import org.opencv.highgui.Highgui;
 
 import com.google.common.base.Charsets;
@@ -42,7 +42,7 @@ public class ImageDBConnection implements IImageDBConnection {
 		HashCode hc = null;
 
 		public CacheKey(IEvent event, boolean leftSide, int wavelength,
-				HashFunction hashFunct) {
+						HashFunction hashFunct) {
 			StringBuilder evntName = new StringBuilder();
 			evntName.append(event.getUUID());
 			evntName.append(wavelength);
@@ -120,7 +120,7 @@ public class ImageDBConnection implements IImageDBConnection {
 
 	@Override
 	public float[][][] getImageParam(IEvent event, int wavelength,
-			boolean leftSide) {
+									 boolean leftSide) {
 		CacheKey key = new CacheKey(event, leftSide, wavelength, this.hashFunct);
 		float[][][] returnValue = this.cache.getUnchecked(key);
 		key = null;
@@ -210,14 +210,14 @@ public class ImageDBConnection implements IImageDBConnection {
 		Timestamp endTime = new Timestamp(key.getEvent().getTimePeriod()
 				.getEndMillis());
 
-		Rect tmpBbox = key.getEvent().getBBox();
+		Rectangle2D.Double tmpBbox = key.getEvent().getBBox();
 
-		Rect rec = new Rect((tmpBbox.x / this.paramDownSample) - 4,
+		Rectangle2D.Double rec = new Rectangle2D.Double((tmpBbox.x / this.paramDownSample) - 4,
 				(tmpBbox.y / this.paramDownSample) - 4,
 				(tmpBbox.width / this.paramDownSample) + 8,
 				(tmpBbox.height / this.paramDownSample) + 8);
 
-		retVal = new float[rec.height][rec.width][this.paramDim];
+		retVal = new float[(int)rec.height][(int)rec.width][this.paramDim];
 
 		int tryCount = 0;
 		boolean executed = false;
@@ -235,18 +235,18 @@ public class ImageDBConnection implements IImageDBConnection {
 					param_prep_stmt.setTimestamp(3, startTime);
 					param_prep_stmt.setTimestamp(4, endTime);
 					param_prep_stmt.setInt(5, key.getWavelength());
-					param_prep_stmt.setInt(6, rec.x);
-					param_prep_stmt.setInt(7, rec.x + rec.height - 1);
-					param_prep_stmt.setInt(8, rec.y);
-					param_prep_stmt.setInt(9, rec.y + rec.width - 1);
+					param_prep_stmt.setInt(6, (int)rec.x);
+					param_prep_stmt.setInt(7, (int)rec.x + (int)rec.height - 1);
+					param_prep_stmt.setInt(8, (int)rec.y);
+					param_prep_stmt.setInt(9, (int)rec.y + (int)rec.width - 1);
 
 					ResultSet imgParamRslts = param_prep_stmt.executeQuery();
 					while (imgParamRslts.next()) {
 						int x = imgParamRslts.getInt("x");
-						x = x - rec.x;
+						x = x - (int)rec.x;
 
 						int y = imgParamRslts.getInt("y");
-						y = y - rec.y;
+						y = y - (int)rec.y;
 
 						for (int i = 1; i < 11; i++) {
 							retVal[x][y][i - 1] = imgParamRslts.getFloat("p"

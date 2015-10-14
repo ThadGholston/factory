@@ -1,0 +1,19 @@
+Rect rect = cv::boundingRect(*searchArea);
+startSearch = endSearch;
+startSearch = endSearch;
+
+
+if (currentEvent->getPrevious() == NULL || currentEvent->getPrevious()->getPrevious() == NULL){
+	double span = currentEvent->getTimePeriod().length().total_seconds() / secondsToDaysConst;
+	bt::ptime endSearch = startSearch + currentEvent->getTimePeriod().length();
+	searchArea = this->predictor->getSearchRegion(&rect, span);
+	potentialTracks2 = this->tracksIdxr->getTracksStartBetween(startSearch, endSearch, searchArea);
+} else {
+	boost::posix_time::time_period tp = currentEvent->getPrevious()->getTimePeriod();
+	bt::ptime endSearch = startSearch + (currentEvent->getTimePeriod().begin() - tp.begin());
+	double span2 = (endSearch - startSearch).total_seconds() / secondsToDaysConst;
+	float* motionVect = new float[2];
+	this->trackMovement(currentTrack, motionVect);
+	searchArea = this->predictor->getSearchRegion(&rect, motionVect, span); //getPredictedPos(&searchArea, motionVect, span2);
+	potentialTracks2 = this->tracksIdxr->getTracksStartBetween(startSearch, endSearch, searchArea);
+}

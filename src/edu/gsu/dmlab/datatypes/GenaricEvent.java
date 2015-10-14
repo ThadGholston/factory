@@ -1,5 +1,5 @@
 /**
- * 
+ *
  * File: GenaricEvent.java is a genaric event type used to represent a single
  * detection of a solar event taken from HEK.  
  * @author Dustin Kempton
@@ -11,18 +11,18 @@ package edu.gsu.dmlab.datatypes;
 
 import java.util.UUID;
 
+import edu.gsu.dmlab.geometry.Point2D;
+import edu.gsu.dmlab.geometry.Rectangle2D;
 import org.joda.time.Interval;
-import org.opencv.core.Point;
-import org.opencv.core.Rect;
 
 import edu.gsu.dmlab.datatypes.interfaces.IEvent;
 
 public class GenaricEvent implements IEvent {
 
 	private int id;
-	private Point[] poly = null;
-	private Rect bBox = null;
-	private Point location = null;
+	private Point2D[] poly = null;
+	private Rectangle2D bBox = null;
+	private Point2D location = null;
 	private Interval timePeriod = null;
 	private String type = null;
 
@@ -30,20 +30,20 @@ public class GenaricEvent implements IEvent {
 	IEvent previous = null;
 	UUID uniqueId = null;
 
-	public GenaricEvent(int id, Interval timePeriod, Point location, Rect bbox,
-			Point[] poly, String type) {
+	public GenaricEvent(int id, Interval timePeriod, Point2D location, Rectangle2D bbox,
+						Point2D[] poly, String type) {
 		if (timePeriod == null)
 			throw new IllegalArgumentException(
 					"Interval cannot be null in GenaricEvet constructor.");
 		if (location == null)
 			throw new IllegalArgumentException(
-					"Point cannot be null in GenaricEvet constructor.");
+					"Point2D cannot be null in GenaricEvet constructor.");
 		if (bbox == null)
 			throw new IllegalArgumentException(
-					"Rect cannot be null in GenaricEvet constructor.");
+					"Rectangle2D cannot be null in GenaricEvet constructor.");
 		if (poly == null)
 			throw new IllegalArgumentException(
-					"Point[] cannot be null in GenaricEvet constructor.");
+					"Point2D[] cannot be null in GenaricEvet constructor.");
 		if (type == null)
 			throw new IllegalArgumentException(
 					"Type cannot be null in GenaricEvet constructor.");
@@ -73,7 +73,7 @@ public class GenaricEvent implements IEvent {
 	 * @see edu.gsu.dmlab.datatypes.interfaces.IEvent#getLocation()
 	 */
 	@Override
-	public Point getLocation() {
+	public Point2D getLocation() {
 		return this.location;
 	}
 
@@ -83,7 +83,7 @@ public class GenaricEvent implements IEvent {
 	 * @see edu.gsu.dmlab.datatypes.interfaces.IEvent#getBBox()
 	 */
 	@Override
-	public Rect getBBox() {
+	public Rectangle2D getBBox() {
 		return this.bBox;
 	}
 
@@ -93,7 +93,7 @@ public class GenaricEvent implements IEvent {
 	 * @see edu.gsu.dmlab.datatypes.interfaces.IEvent#getShape()
 	 */
 	@Override
-	public Point[] getShape() {
+	public Point2D[] getShape() {
 		return this.poly;
 	}
 

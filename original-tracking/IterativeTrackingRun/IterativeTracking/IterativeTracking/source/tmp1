@@ -1,0 +1,19 @@
+
+
+
+
+
+if (currentEvent->getPrevious() == NULL || currentEvent->getPrevious()->getPrevious() == NULL){
+	span = currentEvent->getTimePeriod().length().total_seconds() / secondsToDaysConst;
+	endSearch = startSearch + currentEvent->getTimePeriod().length();
+	searchArea = this->predictor->getSearchRegion(currentEvent->getBBox(), span);
+	potentialTracks = this->tracksIdxr->getTracksStartBetween(startSearch, endSearch, searchArea);
+} else {
+	boost::posix_time::time_period tp = currentEvent->getPrevious()->getTimePeriod();
+	endSearch = startSearch + (currentEvent->getTimePeriod().begin() - tp.begin());
+	span = (endSearch - startSearch).total_seconds() / secondsToDaysConst;
+	float* motionVect = new float[2];
+	this->trackMovement(currentTrack, motionVect);
+	searchArea = this->predictor->getSearchRegion(currentEvent->getBBox(), motionVect, span);
+	potentialTracks = this->tracksIdxr->getTracksStartBetween(startSearch, endSearch, searchArea);
+}

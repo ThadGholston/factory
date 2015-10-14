@@ -1,0 +1,231 @@
+package edu.gsu.dmlab.indexes;
+
+import edu.gsu.dmlab.geometry.Point2D;
+import edu.gsu.dmlab.geometry.Rectangle2D;
+import edu.gsu.dmlab.datatypes.interfaces.IRegion;
+import edu.gsu.dmlab.datatypes.interfaces.ITrack;
+import edu.gsu.dmlab.indexes.interfaces.ITrackIndexer;
+import edu.gsu.dmlab.util.Utility;
+import org.joda.time.DateTime;
+import org.joda.time.Interval;
+
+import java.util.*;
+import java.util.stream.IntStream;
+
+/**
+ * Created by thad on 9/19/15.
+ */
+
+public class TrackIndexer implements ITrackIndexer {
+    private int regionDimension;
+    private int regionDivisor;
+    private ArrayList<ITrack> tracks;
+    private IRegion regionalTracksStart;
+    private IRegion regionalTracksEnd;
+    private ArrayList<Point2D> searchAreaBegin;
+
+    public TrackIndexer(int _regionDimension, int _regionDivisor, ArrayList<ITrack> _tracks, IRegion regionalTracksStart, IRegion regionalTracksEnd){
+        if(_tracks == null) throw new IllegalArgumentException("tracks are null");
+        this.tracks = _tracks;
+        regionDimension = _regionDimension;
+        regionDivisor = _regionDivisor;
+        regionalTracksStart = this.regionalTracksStart;
+        regionalTracksEnd = this.regionalTracksEnd;
+        searchAreaBegin = new ArrayList<Point2D>();
+        processTracks(tracks);
+        tracks.parallelStream().sorted(Comparator.comparingLong(p -> p.getStartTimeMillis()));
+        sortRegionalTracks(regionalTracksStart);
+        sortRegionalTracks(regionalTracksEnd);
+
+    }
+
+    private ArrayList<ArrayList<ArrayList<ITrack>>> initRegion(int dimension, int divisor) {
+        ArrayList<ArrayList<ArrayList<ITrack>>> region = new ArrayList<>();
+
+        for (int x = 0; x < this.regionDimension; x++) {
+            region.add(x, new ArrayList<ArrayList<ITrack>>(this.regionDimension));
+            for (int y = 0; y < this.regionDimension; y++) {
+                region.get(x).add(y, new ArrayList<ITrack>());
+            }
+        }
+        return region;
+    }
+
+    private void processTracks(ArrayList<ITrack> tracks) {
+        for(int i = 0; i <tracks.size(); i++){
+            ITrack track = tracks.get(i);
+            if(track.getFirst().getType().equals("SG")){
+                Rectangle2D beginBBox = track.getFirst().getBBox();
+                Rectangle2D endBBox = track.getLast().getBBox();
+                Rectangle2D beginSearchBox = new Rectangle2D();
+                Rectangle2D endSearchBox = new Rectangle2D();
+                initBeginningAndEndingForSG(beginBBox, endBBox, beginSearchBox, endSearchBox);
+                //TODO: parallelize
+
+                addElementToRegion(regionalTracksStart, beginSearchBox, track);
+                addElementToRegion(regionalTracksEnd, beginSearchBox, track);
+                // end of parallel section
+            } else {
+                populateRegionalArea(track, regionalTracksStart);
+                populateRegionalArea(track, regionalTracksEnd);
+            }
+        }
+    }
+
+    private void initBeginningAndEndingForSG(Rectangle2D beginBBox, Rectangle2D endBBox, Rectangle2D beginSearchBox, Rectangle2D endSearchBox){
+        beginSearchBox.x = beginBBox.getX() / regionDivisor;
+        beginSearchBox.y = beginBBox.getY() / regionDivisor;
+        beginSearchBox.height = beginBBox.height / regionDivisor;
+        beginSearchBox.width = beginBBox.width / regionDivisor;
+
+        endSearchBox.x = endBBox.getX() / regionDivisor;
+        endSearchBox.y = endBBox.getY() / regionDivisor;
+        endSearchBox.height = endBBox.height / regionDivisor;
+        endSearchBox.width = endBBox.width / regionDivisor;
+    }
+
+    private void populateRegionalArea(ITrack track, IRegion region){
+        Point2D[] searchAreaBegin = Utility.getScaledSearchArea(track, regionDivisor);
+        Rectangle2D startBoundingRectangle = Utility.getBoundingBox(searchAreaBegin);
+        // addElementToRegion(regionalTracksStart, startBoundingRectangle, track);
+    }
+
+
+    private void sortRegionalTracks(IRegion region){
+        IntStream.range(0, regionDimension).parallel().forEach(x -> {
+            IntStream.range(0, regionDimension).parallel().forEach(y -> {
+                //TODO: Implement this sort
+            });
+        });
+    }
+
+    @Override
+    public ArrayList<ITrack> getTracks(DateTime begin, DateTime end) {
+        ArrayList<ITrack> outTracks = new ArrayList<>();
+        Interval timePeriod = new Interval(begin, end);
+        for (ITrack track: this.tracks){
+            if (timePeriod.contains(track.getTimePeriod())){
+                outTracks.add(track);
+            } else {
+                break;
+            }
+        }
+        return outTracks;
+    }
+
+    @Override
+    public ArrayList<ITrack> getAll() {
+        ArrayList<ITrack> outList = new ArrayList<>();
+        for (ITrack track: this.tracks){
+            ITrack tmpTrack = track;
+            boolean isInList = false;
+            boolean same = false;
+            for (ITrack innerTmpTrack: outList){
+                if (tmpTrack == innerTmpTrack){
+                    same = true;
+                    break;
+                }
+                if (tmpTrack.getFirst().getId() == innerTmpTrack.getFirst().getId()){
+                    isInList = true;
+                    break;
+                }
+            }
+            if (!isInList && !same ){
+                outList.add(tmpTrack);
+            }
+        }
+        return outList;
+    }
+
+    @Override
+    public DateTime getFirstTime() {
+        return this.tracks.get(0).getFirst().getTimePeriod().getStart();
+    }
+
+    @Override
+    public DateTime getLastTime() {
+        return  this.tracks.get(0).getLast().getTimePeriod().getEnd();
+    }
+
+    @Override
+    public ArrayList<ITrack> getTracksEndBetween(DateTime begin, DateTime end, Point2D[] searchArea) {
+        return getTracksInRange(begin, end, searchArea, regionalTracksEnd);
+    }
+
+    @Override
+    public ArrayList<ITrack> getTracksStartBetween(DateTime begin, DateTime end, Point2D[] searchArea) {
+        return getTracksInRange(begin, end, searchArea, regionalTracksStart);
+    }
+
+    private ArrayList<ITrack> getTracksInRange(DateTime begin, DateTime end, Point2D[] searchArea, IRegion region){
+        ArrayList<ITrack> inSearch = new ArrayList<>();
+        Point2D[] scaledSearchArea = null;
+        Rectangle2D rectangle = null;
+        getBoundingRectangleAndScaledSearchArea(begin, end, searchArea, scaledSearchArea, rectangle);
+        Interval overallTimePeriod = new Interval(begin, end);
+        return searchForElementsInSpaceAndTime(region, overallTimePeriod, rectangle, scaledSearchArea);
+    }
+
+    private ArrayList<ITrack> searchForElementsInSpaceAndTime( ArrayList<ArrayList<ArrayList<ITrack>>> region, Interval interval, Rectangle2D searchBox, Point2D[] searchPolygon) {
+        ArrayList<ITrack> searchResults = new ArrayList<>();
+        int yMin = (int) ((searchBox.getMinY() < 0) ? 0 : searchBox.getMinY());
+        int xMin = (int) ((searchBox.getMinX() < 0) ? 0 : searchBox.getMinX());
+        int xMax = (int) ((searchBox.getMinY() < 0) ? 0 : searchBox.getMaxX());
+        int yMax = (int) ((searchBox.getMinY() < 0) ? 0 : searchBox.getMaxY());
+        IntStream.range(xMin, xMax).parallel().forEach(x -> {
+            IntStream.range(yMin, yMax).parallel().forEach(y -> {
+                Point2D testPoint = new Point2D(x, y);
+                if (Utility.isInsideSearchArea(testPoint, searchPolygon) &&
+                        region.get(x).get(y).size() > 0) {
+                    ArrayList<ITrack> intermediateResults = region.get(x).get(y);
+                    for (ITrack object : intermediateResults) {
+                        if (interval.contains(object.getTimePeriod())) {
+                            synchronized (this) {
+                                if (!searchResults.contains(object)) {
+                                    searchResults.add(object);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+        return searchResults;
+    }
+
+    private void getBoundingRectangleAndScaledSearchArea(DateTime begin, DateTime end, Point2D[] searchArea, Point2D[] scaledSearchArea, Rectangle2D rectangle){
+        //TODO: Reimplement this
+//        ArrayList<ITrack> inSearch = new ArrayList<>();
+//        scaledSearchArea = new Point2D[];
+//        for(Point2D point: searchArea){
+//            Point2D p = new Point2D((int)point.getX()/regionDivisor, (int)point.getY()/regionDivisor);
+//            scaledSearchArea.add(p);
+//        }
+    }
+
+    private void addElementToRegion(ArrayList<ArrayList<ArrayList<ITrack>>> region, Rectangle2D searchBox, ITrack track) {
+        ArrayList<ITrack> searchResults = new ArrayList<>();
+        int yMin = (int) ((searchBox.getMinY() < 0) ? 0 : searchBox.getMinY());
+        int xMin = (int) ((searchBox.getMinX() < 0) ? 0 : searchBox.getMinX());
+        int xMax = (int) ((searchBox.getMinY() < 0) ? 0 : searchBox.getMaxX());
+        int yMax = (int) ((searchBox.getMinY() < 0) ? 0 : searchBox.getMaxY());
+        IntStream.range(xMin, xMax).parallel().forEach(x -> {
+            IntStream.range(yMin, yMax).parallel().forEach(y -> {
+                Point2D testPoint = new Point2D(x, y);
+                Point2D[] scaledSearchArea = Utility.getScaledSearchArea(track, regionDivisor);
+                if (Utility.isInsideSearchArea(testPoint, scaledSearchArea) &&
+                        region.get(x).get(y).size() > 0) {
+                    ArrayList<ITrack> intermediateResults = region.get(x).get(y);
+                    for (ITrack object : intermediateResults) {
+                        synchronized (this) {
+                            if (!searchResults.contains(object)) {
+                                searchResults.add(object);
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    }
+
+}
