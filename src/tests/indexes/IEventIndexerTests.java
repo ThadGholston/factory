@@ -13,25 +13,76 @@ import java.util.ArrayList;
 public class IEventIndexerTests {
 
     @Test
-    public void getExpectedChangePerFrame(Interval timePeriod) {
+    public void GetExpectedChangePerFrame_NoFrames_Successful() {
     }
 
     @Test
-    public void getEventsBetween(DateTime begin, DateTime end) {
+    public void GetEventsBetween_NoTracks_Fails() {
     }
 
     @Test
-    public void getEventsBetween(DateTime begin, DateTime end, ArrayList<Point2D> searchArea) {
+    public void GetEventsBetween_IntervalIsNull_Fails() {
     }
 
     @Test
-    public void getEventsInNeighborhood(DateTime begin, DateTime end, ArrayList<Point2D> searchArea, double neighborHoodMultiply) {
-    }
-
-    public void getFirstTime() {
+    public void GetEventsBetween_IntervalIsBefore_Fails() {
     }
 
     @Test
-    public void getLastTime() {
+    public void GetEventsBetween_IntervalIsAfter_Fails() {
+    }
+
+    @Test
+    public void GetEventsBetween_IntervalInTheMiddle_Success() {
+    }
+
+    @Test
+    public void GetEventsInNeighborhood__NoTracks_Fails() {
+    }
+
+    @Test
+    public void GetEventsInNeighborhood_IntervalIsNull_Fails() {
+    }
+
+    @Test
+    public void GetEventsInNeighborhood_IntervalIsBefore_Fails() {
+    }
+
+    @Test
+    public void GetEventsInNeighborhood_IntervalIsAfter_Fails() {
+    }
+
+    @Test
+    public void GetEventsInNeighborhood_IntervalInTheMiddle_Success() {
+    }
+
+    @Test
+    public void GetEventsInNeighborhood_SearchAreaContainsNoEvents_ReturnsNoEvents() {
+    }
+
+    @Test
+    public void GetEventsInNeighborhood_SearchAreaContainsEvents_ReturnsEvents() {
+    }
+
+    @Test
+    public void GetEventsInNeighborhood_SearchAreawithinMultiple_Success() {
+    }
+
+    @Test
+    public void GetFirstTime_EmptyListOfTracks_Failure() {
+    }
+
+    @Test
+    public void GetFirstTime_ContainsTracks_ReturnsFirstDate() {
+    }
+
+
+    @Test
+    public void GetLastTime_EmptyListOfTracks_Failure() {
+
+    }
+
+    @Test
+    public void GetLastTime_ContainsTracks_ReturnsLastDate() {
     }
 }
