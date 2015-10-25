@@ -40,14 +40,14 @@ public class TrapezoidPositionPredictor implements IPositionPredictor {
 
 	/**
 	 * getPredictedPos :returns the predicted position of all the points in the
-	 * list, for the change in time,based upon the latitude of the point and the
+	 * objectList, for the change in time,based upon the latitude of the point and the
 	 * solar rotation at that latitude.
 	 *
 	 * @param poly
-	 *            :the list of point to calculate the new position of.
+	 *            :the objectList of point to calculate the new position of.
 	 * @param span
 	 *            :the time span used to determine how far the sun has rotated
-	 * @return :a new list of points with the new coordinates
+	 * @return :a new objectList of points with the new coordinates
 	 */
 	@Override
 	public Point2D[] getPredictedPos(Point2D[] poly, double span) {

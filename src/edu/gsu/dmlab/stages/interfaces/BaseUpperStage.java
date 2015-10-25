@@ -1,16 +1,15 @@
 package edu.gsu.dmlab.stages.interfaces;
 
+import edu.gsu.dmlab.geometry.GeometryUtilities;
 import edu.gsu.dmlab.graph.algo.SuccessiveShortestPaths;
 import edu.gsu.dmlab.graph.Edge;
-import edu.gsu.dmlab.datatypes.TrackRelation;
 import edu.gsu.dmlab.geometry.Point2D;
 import edu.gsu.dmlab.geometry.Rectangle2D;
 import edu.gsu.dmlab.datatypes.interfaces.IEvent;
 import edu.gsu.dmlab.datatypes.interfaces.ITrack;
-import edu.gsu.dmlab.indexes.interfaces.ITrackIndexer;
-import edu.gsu.dmlab.util.Utility;
+import edu.gsu.dmlab.indexes.interfaces.IIndexer;
 import edu.gsu.dmlab.util.interfaces.IPositionPredictor;
-import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.math3.special.Erf;
 import org.jgrapht.graph.SimpleDirectedWeightedGraph;
 import org.joda.time.DateTime;
@@ -21,15 +20,12 @@ import org.opencv.imgproc.Imgproc;
 import java.util.*;
 
 import static org.opencv.core.CvType.CV_32FC;
-import static org.opencv.imgproc.Imgproc.calcHist;
 import static org.opencv.imgproc.Imgproc.compareHist;
 
 /**
  * Created by thad on 9/23/15.
  */
-public abstract class BaseUpperStage {
-    protected IPositionPredictor positionPredictor;
-    protected ITrackIndexer trackIndexer;
+public abstract class BaseUpperStage extends Stage {
     protected int maxFrameSkip;
     protected double sameMean;
     protected double sameStdDev;
@@ -50,9 +46,9 @@ public abstract class BaseUpperStage {
     protected final int secondsToDaysConstant = 60 * 60 & 24;
 
 
-    public BaseUpperStage(ITrackIndexer trackIndexer, IPositionPredictor positionPredictor, Configuration configuration, int maxFrameSkip) {
-        this.trackIndexer = trackIndexer;
-        this.positionPredictor = positionPredictor;
+    public BaseUpperStage(IPositionPredictor positionPredictor, IIndexer trackIndexer, int maxFrameSkip) throws ConfigurationException {
+        super(positionPredictor, trackIndexer);
+        this.indexer = trackIndexer;
         this.maxFrameSkip = configuration.getInt("maxFrameSkip");
         this.sameMean = configuration.getDouble("sameMean");
         this.sameStdDev = configuration.getDouble("sameStdDev");
@@ -67,12 +63,12 @@ public abstract class BaseUpperStage {
 
     public ArrayList<ITrack> process() {
 
-        ArrayList<ITrack> tracks = this.trackIndexer.getAll();
+        ArrayList<ITrack> tracks = this.indexer.getAll();
         HashMap<UUID, Integer> eventMap = new HashMap<>();
-        //for each track that we got back in the list we will find the potential
+        //for each track that we got back in the objectList we will find the potential
         //matches for that track and link it to the one with the highest probability of
         //being a match.
-        ArrayList<TrackRelation> relations = new ArrayList<>();
+        HashMap<ITrack, ArrayList<ITrack>> relations = new HashMap<>();
         for (ITrack track : tracks) {
             ArrayList<ITrack> allPotentialTracks = getAllPotentialTracks(track);
 
@@ -82,14 +78,13 @@ public abstract class BaseUpperStage {
             }
             // create a relation of the track and the potential matches and
             // push it onto the vector of relations
-            TrackRelation newRelation = new TrackRelation(track, allPotentialTracks);
-            relations.add(newRelation);
+            relations.put(track, allPotentialTracks);
         }
 
 
         linkRelatedTracks(relations, eventMap);
 
-        return this.trackIndexer.getAll();
+        return this.indexer.getAll();
     }
 
 
@@ -121,14 +116,14 @@ public abstract class BaseUpperStage {
             double span = event.getTimePeriod().toPeriod().getSeconds() / secondsToDaysConstant;
             DateTime endSearch = startSearch.plus(event.getTimePeriod().toPeriod().getMillis());
             Point2D[] searchArea = this.positionPredictor.getSearchRegion(rectangle, span);
-            return this.trackIndexer.getTracksStartBetween(startSearch, endSearch, searchArea);
+            return null;// this.trackIndexer.getTracksStartBetween(startSearch, endSearch, searchArea);
         } else {
             Interval period = track.get(track.indexOf(event)).getTimePeriod();
             DateTime endSearch = startSearch.plus(event.getTimePeriod().getStartMillis() - period.getStartMillis());
             double span = ((endSearch.minus(startSearch.getMillis())).getMillis() / 1000) / secondsToDaysConstant;
             float[] motionVect = trackMovement(track);
             Point2D[] searchArea = this.positionPredictor.getSearchRegion(rectangle, motionVect, span);
-            return this.trackIndexer.getTracksStartBetween(startSearch, endSearch, searchArea);
+            return null; //this.trackIndexer.getTracksStartBetween(startSearch, endSearch, searchArea);
         }
     }
 
@@ -139,13 +134,12 @@ public abstract class BaseUpperStage {
 //
 //    }
 
-    private void initializeDataStructuresForSSP(ITrack[] trackletArray, SimpleDirectedWeightedGraph graph, ArrayList<TrackRelation> relations, HashMap<UUID, Integer> eventMap) {
+    private void initializeDataStructuresForSSP(ITrack[] trackletArray, SimpleDirectedWeightedGraph graph, HashMap<ITrack, ArrayList<ITrack>> relations, HashMap<UUID, Integer> eventMap) {
         int capacity = 1;
-        for (TrackRelation trackRelation : relations) {
-            ITrack track = trackRelation.track;
-            int x = eventMap.get(trackRelation.track.getFirst().getUUID());
-            trackletArray[x] = trackRelation.track;
-            for (ITrack possibleSuccessor : trackRelation.relatedTracks) {
+        for (ITrack track: relations.keySet()) {
+            int x = eventMap.get(track.getFirst().getUUID());
+            trackletArray[x] = track;
+            for (ITrack possibleSuccessor : relations.get(track)) {
                 int y = eventMap.get(possibleSuccessor.getFirst().getUUID());
                 trackletArray[y] = possibleSuccessor;
                 double probablity = prob(track, possibleSuccessor);
@@ -191,12 +185,11 @@ public abstract class BaseUpperStage {
         }
     }
 
-    private void linkRelatedTracks(ArrayList<TrackRelation> relations, HashMap<UUID, Integer> eventMap) {
+    private void linkRelatedTracks(HashMap<ITrack, ArrayList<ITrack>> relations, HashMap<UUID, Integer> eventMap) {
         int countX = 0;
 
         ITrack[] trackletArray = new ITrack[countX];
         SimpleDirectedWeightedGraph graph = new SimpleDirectedWeightedGraph(Edge.class);
-        ;
         initializeDataStructuresForSSP(trackletArray, graph, relations, eventMap);
         int[] capacity = calculateCapacity(graph);
         int[] residualCapacity = calculateResidualCapacity(graph);
@@ -311,7 +304,7 @@ public abstract class BaseUpperStage {
             for (int j = (int) rectangle.getY() - 2; j <= rectangle.getY() + rectangle.getHeight() + 2; j++) {
 //                //if inside the search area and there are events associated with the location
                 if (i >= regionDimension || j >= regionDimension || i < 0 || j < 0) continue;
-                if (Utility.isInsideSearchArea(new Point2D(i, j), scaledSearchArea)) {
+                if (GeometryUtilities.isInsideSearchArea(new Point2D(i, j), scaledSearchArea)) {
 
                     if (!isSet) {
                         minVal = this.pValues[i][j][idx];

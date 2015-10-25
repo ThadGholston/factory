@@ -160,7 +160,7 @@ public class EventIndexer implements IEventIndexer {
             //create a new frames vector to add to
             this.frames = new ArrayList<ArrayList<IEvent>>();
 
-            //push the number of new vectors onto the new list that we need.
+            //push the number of new vectors onto the new objectList that we need.
             for (int i = 0; i < number; i++) {
                 ArrayList<IEvent> evntVect = new ArrayList<IEvent>();
                 this.frames.add(evntVect);

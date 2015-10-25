@@ -45,19 +45,10 @@ public interface ITrack extends IBaseDataType, List<IEvent>, RandomAccess, Clone
      */
     IEvent getLast();
 
-//    boolean add(IEvent event);
-//
-//    void add(int index, IEvent event);
-//
-//    boolean addAll(Collection<IEvent> events);
-//
-//    boolean addAll(int index, Collection<IEvent> events);
-//
-//    void clear();
-//
-//    Object clone();
-//
-//    boolean contains(IEvent event);
-//
-//    void ensureCapacity(int )
+    /**
+     * Returns the event type of the track
+     * @return the event type of the track
+     */
+    public EventType getType();
+
 }

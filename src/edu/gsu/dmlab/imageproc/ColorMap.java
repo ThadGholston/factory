@@ -37,7 +37,7 @@ import edu.gsu.dmlab.imageproc.colormaps.Winter;
 
 public abstract class ColorMap {
 
-    public static enum COLORMAP {
+    public enum COLORMAP {
         AUTUMN, BONE, JET, WINTER
     }
 
@@ -49,22 +49,19 @@ public abstract class ColorMap {
         for (int i = 0; i < n; i++) {
             vals[i] = x0 + i * step;
         }
-        MatOfFloat pts = new MatOfFloat(vals);
-        return pts;
+        return new MatOfFloat(vals);
     }
 
-    static void sortMatrixRowsByIndices(Mat _src, Mat _indices, Mat _dst)
+    static void sortMatrixRowsByIndices(Mat src, Mat indices, Mat dst)
             throws InvalidConfigException {
-        if (_indices.type() != CvType.CV_32SC1)
+        if (indices.type() != CvType.CV_32SC1)
             throw new InvalidConfigException(
                     "cv::sortRowsByIndices only works on integer indices!");
-        Mat src = _src;
 
-        ArrayList<Integer> idxList = new ArrayList<Integer>();
-        Converters.Mat_to_vector_int(_indices.t(), idxList);
+        ArrayList<Integer> idxList = new ArrayList<>();
+        Converters.Mat_to_vector_int(indices.t(), idxList);
 
-        _dst.create(src.rows(), src.cols(), src.type());
-        Mat dst = _dst;
+        dst.create(src.rows(), src.cols(), src.type());
 
         for (int idx = 0; idx < idxList.size(); idx++) {
             Mat originalRow = src.row(idxList.get(idx));
@@ -84,9 +81,8 @@ public abstract class ColorMap {
         return argsort(_src, true);
     }
 
-    static Mat argsort(Mat _src, boolean ascending)
+    static Mat argsort(Mat src, boolean ascending)
             throws InvalidConfigException {
-        Mat src = _src;
 
         if (src.rows() != 1 && src.cols() != 1)
             throw new InvalidConfigException(
@@ -147,7 +143,7 @@ public abstract class ColorMap {
             throws InvalidConfigException {
         Mat lut = new Mat();
         Mat lut8 = new Mat();
-        ArrayList<Mat> planes = new ArrayList<Mat>();
+        ArrayList<Mat> planes = new ArrayList<>();
         planes.add(interp1_(X, b, xi));
         planes.add(interp1_(X, g, xi));
         planes.add(interp1_(X, r, xi));
@@ -170,9 +166,9 @@ public abstract class ColorMap {
 
     public static void applyColorMap(Mat src, Mat dst, COLORMAP colormap)
             throws InvalidConfigException {
-        ColorMap cm = colormap == COLORMAP.AUTUMN ? (ColorMap) (new Autumn())
-                : colormap == COLORMAP.BONE ? (ColorMap) (new Bone())
-                : colormap == COLORMAP.JET ? (ColorMap) (new Jet())
+        ColorMap cm = colormap == COLORMAP.AUTUMN ? new Autumn()
+                : colormap == COLORMAP.BONE ? new Bone()
+                : colormap == COLORMAP.JET ? new Jet()
                 : colormap == COLORMAP.WINTER ? (ColorMap) (new Winter())
                 : null;
 
@@ -193,23 +189,22 @@ public abstract class ColorMap {
     //
     // Throws an error for wrong-aligned lookup table, which must be
     // of size 256 in the latest OpenCV release (2.3.1).
-    void apply(Mat _src, Mat _dst) throws InvalidConfigException {
+    void apply(Mat src, Mat dst) throws InvalidConfigException {
         if (_lut.total() != 256)
             throw new InvalidConfigException(
                     "cv::LUT only supports tables of size 256.");
-        Mat src = _src;
-        // Return original matrix if wrong type is given (is fail loud better
+        // Return original searchSpace if wrong type is given (is fail loud better
         // here?)
         if (src.type() != CvType.CV_8UC1 && src.type() != CvType.CV_8UC3) {
-            src.copyTo(_dst);
+            src.copyTo(dst);
             return;
         }
-        // Turn into a BGR matrix into its grayscale representation.
+        // Turn into a BGR searchSpace into its grayscale representation.
         if (src.type() == CvType.CV_8UC3)
             Imgproc.cvtColor(src.clone(), src, Imgproc.COLOR_BGR2GRAY);
         Imgproc.cvtColor(src.clone(), src, Imgproc.COLOR_GRAY2BGR);
         // Apply the ColorMap.
-        Core.LUT(src, _lut, _dst);
+        Core.LUT(src, _lut, dst);
         // _lut.copyTo(_dst);
     }
 

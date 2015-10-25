@@ -6,5 +6,5 @@ import edu.gsu.dmlab.datatypes.interfaces.IEvent;
 
 public interface IHistogramProducer {
 
-	public void getHist(Mat retMat, IEvent event, int[][] dims, boolean left);
+	void getHist(Mat retMat, IEvent event, int[][] dims, boolean left);
 }

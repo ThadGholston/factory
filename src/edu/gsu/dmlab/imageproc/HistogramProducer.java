@@ -42,11 +42,11 @@ public class HistogramProducer implements IHistogramProducer {
 	public void getHist(Mat retMat, IEvent event, int[][] dims, boolean left) {
 
 		// Get the image parameters for each wavelength in the set of dimensions
-		ArrayList<float[][][]> paramsList = new ArrayList<float[][][]>();
-		for (int i = 0; i < dims.length; i++) {
+		ArrayList<float[][][]> paramsList = new ArrayList<>();
+		for (int[] kDimension: dims){
 			// waveIdx is 1 to 9 but array idx is 0 to 8 so make sure to
 			// subtract 1
-			int waveIdx = dims[i][0];
+			int waveIdx = kDimension[0];
 
 			float[][][] params = this.imageDB.getImageParam(event,
 					this.wavelenghts[waveIdx - 1], left);
@@ -72,13 +72,13 @@ public class HistogramProducer implements IHistogramProducer {
 			}
 		}
 		paramsList.clear();
-		// for some reason the calcHist function wants a list of mat for the
+		// for some reason the calcHist function wants a objectList of mat for the
 		// input
-		List<Mat> matsForHistFunction = new ArrayList<Mat>();
+		List<Mat> matsForHistFunction = new ArrayList<>();
 		matsForHistFunction.add(m);
 
-		// create the channel matrix, histSizes matrix, and histogram ranges
-		// matrix for input
+		// create the channel searchSpace, histSizes searchSpace, and histogram ranges
+		// searchSpace for input
 		int[] channelsArr = new int[depth];
 		int[] histSizeArr = new int[depth];
 		MatOfFloat rangesMat = new MatOfFloat();

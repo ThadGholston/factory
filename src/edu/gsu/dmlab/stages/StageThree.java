@@ -47,16 +47,11 @@ public class StageThree extends BaseUpperStage {
         double []rightMotion = trackNormalizedMeanMovement(rightTrack);
 
         double xdiff = leftMotion[0] - rightMotion[0];
-        //cout << "Xdiff: " << xdiff << endl;
         double ydiff = leftMotion[1] - rightMotion[1];
-        //cout << "Ydiff: " << ydiff << endl;
 
         double val = (xdiff * xdiff) + (ydiff * ydiff);
-        //cout << "Val before sqrt: " << val << endl;
         val = Math.sqrt(val);
-        //cout << "After sqrt: " << val << endl;
         double prob = 1.0 - (0.5 * val);
-        //cout << "Prob: " << prob << endl;
         return prob;
     }
 
@@ -86,12 +81,10 @@ public class StageThree extends BaseUpperStage {
             //Store in array for return
             motionNormMean[0] = xMean / val;
             motionNormMean[1] = yMean / val;
-        }
-        else {
+        } else {
             motionNormMean[0] = 0;
             motionNormMean[1] = 0;
         }
-
         return motionNormMean;
     }
 }

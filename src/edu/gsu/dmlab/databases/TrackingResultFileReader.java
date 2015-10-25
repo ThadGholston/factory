@@ -17,6 +17,8 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
+import edu.gsu.dmlab.datatypes.interfaces.EventType;
+import edu.gsu.dmlab.exceptions.UnknownEventTypeException;
 import edu.gsu.dmlab.geometry.Point2D;
 import edu.gsu.dmlab.geometry.Rectangle2D;
 import org.joda.time.Interval;
@@ -29,33 +31,31 @@ import edu.gsu.dmlab.datatypes.interfaces.ITrack;
 
 public class TrackingResultFileReader {
 	int span;
-	String fileLocation;
 	SimpleDateFormat formatter = null;
+	BufferedReader in;
 
-	public TrackingResultFileReader(String fileLocation, int span) {
-		if (fileLocation == null)
+	public TrackingResultFileReader(BufferedReader in, int span) {
+		if (in == null)
 			throw new IllegalArgumentException(
-					"fileLocation cannot be null in GenaricEvet constructor.");
-		this.fileLocation = fileLocation;
+					"fileLocation cannot be null in GenaricEvent constructor.");
+		this.in = in;
 		this.span = span;
 		this.formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	}
 
-	public ITrack[] getTracks(String type) throws IOException {
+	public ITrack[] getTracks(String type) throws IOException, UnknownEventTypeException {
 
-		ArrayList<ITrack> tmpList = new ArrayList<ITrack>();
+		ArrayList<ITrack> tmpList = new ArrayList<>();
 
 		BufferedReader in = null;
 		try {
-			in = new BufferedReader(new FileReader(this.fileLocation
-					+ File.separator + type + "DustinTracked.txt"));
-			String line = null;
+			String line;
 
 			int lastTrackId = 0;
 			int count = 0;
 			IEvent lastEvent = null;
 			ITrack track = null;
-			while ((line = in.readLine()) != null) {
+			while ((line = this.in.readLine()) != null) {
 				String[] lineSplit = line.split("\t");
 				if (lineSplit.length > 6) {
 					String eventTypeString, startTimeString, hpc_coord_string, hpc_bbox_string, hpc_ccode_string;
@@ -88,9 +88,36 @@ public class TrackingResultFileReader {
 					Interval range = new Interval(startDate.getTime(),
 							startDate.getTime() + (this.span * 1000));
 
+					EventType eventType = null;
+					switch (eventTypeString){
+						case "AR":
+							eventType = EventType.ACTIVE_REGION;
+							break;
+						case "CH":
+							eventType = EventType.CORONAL_HOLE;
+							break;
+						case "EF":
+							eventType = EventType.EMERGING_FLUX;
+							break;
+						case "FI":
+							eventType = EventType.FILAMENT;
+							break;
+						case "FL":
+							eventType = EventType.FLARE;
+							break;
+						case "SG":
+							eventType = EventType.SIGMOID;
+							break;
+						case "SS":
+							eventType = EventType.SUNSPOT;
+							break;
+						default:
+							throw new UnknownEventTypeException("Unrecognized event type: "  + eventTypeString);
+					}
+
 					IEvent ev = new GenaricEvent(count++, range, tmp_coord,
 							this.getRect(hpc_bbox_poly), hpc_ccode,
-							eventTypeString);
+							eventType);
 					if (trackId == lastTrackId) {
 						if (track == null) {
 							track = new Track(ev);
@@ -129,17 +156,17 @@ public class TrackingResultFileReader {
 	}
 
 	/**
-	 * getPoly: returns a list of 2D points extracted from the input string the
-	 * list of points are assumed to create a polygon, they are not tested
+	 * getPoly: returns a objectList of 2D points extracted from the input string the
+	 * objectList of points are assumed to create a polygon, they are not tested
 	 * 
 	 * @param pointsString
 	 *            :the string to extract the points from
-	 * @return :returns the list of 2D points
+	 * @return :returns the objectList of 2D points
 	 */
 	private Point2D[] getPoly(String pointsString) {
 		String[] pointsStrings = pointsString.split(",");
 		String xy;
-		ArrayList<Point2D> pointsList = new ArrayList<Point2D>();
+		ArrayList<Point2D> pointsList = new ArrayList<>();
 		for (int i = 0; i < pointsStrings.length; i++) {
 			xy = pointsStrings[i];
 			pointsList.add(this.getPoint(xy));

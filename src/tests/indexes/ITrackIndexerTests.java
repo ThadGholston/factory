@@ -82,7 +82,6 @@ public class ITrackIndexerTests {
         //DateTime start, DateTime end, Point2D[] searchArea
     }
 
-
     @Test
     public void GetBetween_TracksMergedTogether_InsideOfSearchArea_ReturnTracks() {
         //DateTime start, DateTime end, Point2D[] searchArea

@@ -63,4 +63,4 @@ public class Autumn extends ColorMap {
 				bMatF.clone(), // blue
 				n); // number of sample points
 	}
-};
+}
