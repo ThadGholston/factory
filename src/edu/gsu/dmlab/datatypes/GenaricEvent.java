@@ -11,7 +11,6 @@ package edu.gsu.dmlab.datatypes;
 
 import java.util.UUID;
 
-import edu.gsu.dmlab.datatypes.interfaces.EventType;
 import edu.gsu.dmlab.datatypes.interfaces.IBaseDataType;
 import edu.gsu.dmlab.geometry.Point2D;
 import edu.gsu.dmlab.geometry.Rectangle2D;

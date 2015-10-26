@@ -1,5 +1,6 @@
 package edu.gsu.dmlab.indexes;
 
+import edu.gsu.dmlab.datatypes.EventType;
 import edu.gsu.dmlab.geometry.GeometryUtilities;
 import edu.gsu.dmlab.geometry.Point2D;
 import edu.gsu.dmlab.datatypes.interfaces.IEvent;
@@ -34,7 +35,7 @@ public class BasicEventIndexer extends AbsMatIndexer implements IEventIndexer {
     }
 
     @Override
-    public ArrayList<IEvent> filterOnInterval(Interval timePeriod) {
+    public ArrayList<IEvent> filterOnInterval(EventType type, Interval timePeriod) {
         HashMap<UUID, IEvent> results = new HashMap<>();
         if(!this.globalTimePeriod.overlaps(timePeriod)){
             return (ArrayList<IEvent>)results.values();
@@ -64,12 +65,12 @@ public class BasicEventIndexer extends AbsMatIndexer implements IEventIndexer {
         for(int x = (int)boundingBox.getMinX(); x < boundingBox.getMaxX(); x++){
             for(int y = (int)boundingBox.getMinY(); y < boundingBox.getMaxY(); y++){
                 if (GeometryUtilities.isInsideSearchArea(new Point2D(x, y), searchArea)){
-                    if (searchSpace[x][y].size() == 0){
-                        searchSpace[x][y].add(event);
+                    if (searchSpace[x][y][event.getType().getValue()].size() == 0){
+                        searchSpace[x][y][event.getType().getValue()].add(event);
                     } else {
-                        for (int i = 0; i < searchSpace[x][y].size(); i++){
-                            if (!event.isBefore((IEvent)searchSpace[x][y].get(i)) == false){
-                                searchSpace[x][y].add(i, event);
+                        for (int i = 0; i < searchSpace[x][y][event.getType().getValue()].size(); i++){
+                            if (!event.isBefore((IEvent)searchSpace[x][y][event.getType().getValue()].get(i)) == false){
+                                searchSpace[x][y][event.getType().getValue()].add(i, event);
                             }
                         }
                     }

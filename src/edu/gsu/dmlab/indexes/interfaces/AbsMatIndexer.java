@@ -1,6 +1,7 @@
 package edu.gsu.dmlab.indexes.interfaces;
 
 import edu.gsu.dmlab.ObjectFactory;
+import edu.gsu.dmlab.datatypes.EventType;
 import edu.gsu.dmlab.datatypes.interfaces.IBaseDataType;
 import edu.gsu.dmlab.geometry.Rectangle2D;
 import org.apache.commons.configuration.ConfigurationException;
@@ -15,14 +16,14 @@ import java.util.concurrent.ConcurrentHashMap;
  * Created by thad on 10/11/15.
  */
 public abstract class AbsMatIndexer<T extends IBaseDataType> implements IIndexer<T> {
-    protected ArrayList<T>[][] searchSpace;
+    protected ArrayList<T>[][][] searchSpace;
     protected ArrayList<T> objectList;
     protected int regionDivisor;
     protected int regionDimension;
 
     public AbsMatIndexer(ArrayList<T> objectList) throws ConfigurationException {
         this.regionDimension = ObjectFactory.getConfiguration().getInt("regionDimension");
-        searchSpace = new ArrayList[regionDimension][regionDimension];
+        searchSpace = new ArrayList[regionDimension][regionDimension][];
         sortList(objectList);
         this.objectList = objectList;
     }
@@ -49,7 +50,7 @@ public abstract class AbsMatIndexer<T extends IBaseDataType> implements IIndexer
     }
 
     @Override
-    public abstract ArrayList<T> filterOnInterval(Interval timePeriod);
+    public abstract ArrayList<T> filterOnInterval(EventType type, Interval timePeriod);
     /*{
         ArrayList<T> results = new ArrayList<>();
         for(T obj: (ArrayList<T>) objectList){
@@ -64,11 +65,11 @@ public abstract class AbsMatIndexer<T extends IBaseDataType> implements IIndexer
     }*/
 
     @Override
-    public ArrayList<T> filterOnIntervalAndLocation(Interval timePeriod, Rectangle2D boundingBox){
+    public ArrayList<T> filterOnIntervalAndLocation(EventType type, Interval timePeriod, Rectangle2D boundingBox){
         ConcurrentHashMap<UUID, T> results = new ConcurrentHashMap<>();
         for (int x = (int)boundingBox.getMinX(); x < (int)boundingBox.getMaxX(); x++){
             for (int y = (int)boundingBox.getMinY(); y < (int)boundingBox.getMaxY(); y++){
-                for (T object: searchSpace[x][y]){
+                for (T object: searchSpace[x][y][type.getValue()]){
                     if (object.getTimePeriod().overlaps(timePeriod)){
                         results.put(object.getUUID(), object);
                     }

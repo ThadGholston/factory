@@ -9,15 +9,13 @@
 package edu.gsu.dmlab.databases;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
-import edu.gsu.dmlab.datatypes.interfaces.EventType;
+import edu.gsu.dmlab.datatypes.EventType;
 import edu.gsu.dmlab.exceptions.UnknownEventTypeException;
 import edu.gsu.dmlab.geometry.Point2D;
 import edu.gsu.dmlab.geometry.Rectangle2D;

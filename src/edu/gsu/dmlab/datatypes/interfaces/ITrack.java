@@ -8,7 +8,7 @@
  */
 package edu.gsu.dmlab.datatypes.interfaces;
 
-import org.joda.time.Interval;
+import edu.gsu.dmlab.datatypes.EventType;
 
 import java.io.Serializable;
 import java.util.*;

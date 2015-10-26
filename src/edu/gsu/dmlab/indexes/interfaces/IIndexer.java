@@ -1,5 +1,6 @@
 package edu.gsu.dmlab.indexes.interfaces;
 
+import edu.gsu.dmlab.datatypes.EventType;
 import edu.gsu.dmlab.datatypes.interfaces.IBaseDataType;
 import edu.gsu.dmlab.geometry.Point2D;
 import edu.gsu.dmlab.geometry.Rectangle2D;
@@ -14,7 +15,7 @@ import java.util.ArrayList;
 public interface IIndexer<T extends IBaseDataType> {
     DateTime getFirstTime();
     DateTime getLastTime();
-    ArrayList<T> filterOnInterval(Interval timePeriod);
-    ArrayList<T> filterOnIntervalAndLocation(Interval timePeriod, Rectangle2D boundingBox);
+    ArrayList<T> filterOnInterval(EventType type, Interval timePeriod);
+    ArrayList<T> filterOnIntervalAndLocation(EventType type, Interval timePeriod, Rectangle2D boundingBox);
     ArrayList<T> getAll();
 }

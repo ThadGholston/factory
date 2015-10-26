@@ -1,12 +1,13 @@
 package edu.gsu.dmlab.indexes;
 
-import edu.gsu.dmlab.datatypes.interfaces.EventType;
+import edu.gsu.dmlab.datatypes.EventType;
 import edu.gsu.dmlab.geometry.GeometryUtilities;
 import edu.gsu.dmlab.geometry.Rectangle2D;
 import edu.gsu.dmlab.datatypes.interfaces.ITrack;
 import edu.gsu.dmlab.indexes.interfaces.AbsMatIndexer;
 import edu.gsu.dmlab.indexes.interfaces.IIndexer;
 import org.apache.commons.configuration.ConfigurationException;
+import org.joda.time.Interval;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,11 +25,11 @@ public class BasicTrackIndexer extends AbsMatIndexer implements IIndexer {
     @Override
     protected void buildIndex() {
         objectList.parallelStream().forEach(track -> {
-            insertTrack((ITrack) track);
+            indexTrack((ITrack) track);
         });
     }
 
-    private void insertTrack(ITrack track) {
+    private void indexTrack(ITrack track) {
         if (track.getType() == EventType.SIGMOID) {
             pushSGTrackIntoMatrix(track);
         } else {
@@ -53,7 +54,7 @@ public class BasicTrackIndexer extends AbsMatIndexer implements IIndexer {
     private void popStartRecArea(Rectangle2D boundingBox, ITrack track) {
         IntStream.rangeClosed((int) boundingBox.getMinX(), (int) boundingBox.getMaxX()).parallel().forEach(x -> {
             IntStream.rangeClosed((int) boundingBox.getMinY(), (int) boundingBox.getMaxY()).parallel().forEach(y -> {
-                searchSpace[x][y].add(track);
+                searchSpace[x][y][track.getType().getValue()].add(track);
             });
         });
     }
@@ -64,9 +65,14 @@ public class BasicTrackIndexer extends AbsMatIndexer implements IIndexer {
         Rectangle2D boundingBox = GeometryUtilities.getScaledBoundingBox(track.getFirst().getShape(), regionDivisor);
         IntStream.rangeClosed((int) boundingBox.getMinX(), (int) boundingBox.getMaxX()).parallel().forEach(x -> {
             IntStream.rangeClosed((int) boundingBox.getMinY(), (int) boundingBox.getMaxY()).parallel().forEach(y -> {
-                searchSpace[x][y].add(track);
+                searchSpace[x][y][track.getType().getValue()].add(track);
             });
         });
+    }
+
+    @Override
+    public ArrayList filterOnInterval(EventType type, Interval timePeriod) {
+        return null;
     }
 
 }

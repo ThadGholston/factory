@@ -26,9 +26,9 @@ public class GeometryUtilities {
     }
 
     public static edu.gsu.dmlab.geometry.Point2D[] getScaledSearchArea(Point2D[] area, int divisor){
-        edu.gsu.dmlab.geometry.Point2D[] scaledSearchArea = new edu.gsu.dmlab.geometry.Point2D[area.size()];
-        for(int index = 0; index < area.size(); index++){
-            edu.gsu.dmlab.geometry.Point2D point = area.get(index);
+        edu.gsu.dmlab.geometry.Point2D[] scaledSearchArea = new edu.gsu.dmlab.geometry.Point2D[area.length];
+        for(int index = 0; index < area.length; index++){
+            edu.gsu.dmlab.geometry.Point2D point = area[index];
             edu.gsu.dmlab.geometry.Point2D p = new edu.gsu.dmlab.geometry.Point2D(point.getX() / divisor, point.getY() / divisor);
             scaledSearchArea[index] = p;
         }

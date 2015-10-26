@@ -12,6 +12,7 @@ package edu.gsu.dmlab.datatypes.interfaces;
 
 import java.util.UUID;
 
+import edu.gsu.dmlab.datatypes.EventType;
 import edu.gsu.dmlab.geometry.Point2D;
 import edu.gsu.dmlab.geometry.Rectangle2D;
 import org.joda.time.Interval;

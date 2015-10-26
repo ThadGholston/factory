@@ -10,7 +10,6 @@ package edu.gsu.dmlab.datatypes;
 
 import java.util.*;
 
-import edu.gsu.dmlab.datatypes.interfaces.EventType;
 import edu.gsu.dmlab.datatypes.interfaces.IBaseDataType;
 import org.joda.time.Interval;
 
@@ -91,6 +90,16 @@ public class Track extends ArrayList<IEvent> implements ITrack {
     @Override
     public boolean isBefore(IBaseDataType obj) {
         return this.getTimePeriod().isBefore(obj.getTimePeriod());
+    }
+
+    @Override
+    public boolean isAfter(Interval timePeriod) {
+        return this.getTimePeriod().isAfter(timePeriod);
+    }
+
+    @Override
+    public boolean isAfter(IBaseDataType obj) {
+        return this.getTimePeriod().isAfter(obj.getTimePeriod());
     }
 
     @Override

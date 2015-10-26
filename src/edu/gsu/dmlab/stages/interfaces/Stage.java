@@ -6,7 +6,6 @@ import edu.gsu.dmlab.datatypes.interfaces.ITrack;
 import edu.gsu.dmlab.geometry.GeometryUtilities;
 import edu.gsu.dmlab.geometry.Point2D;
 import edu.gsu.dmlab.geometry.Rectangle2D;
-import edu.gsu.dmlab.indexes.interfaces.IEventIndexer;
 import edu.gsu.dmlab.indexes.interfaces.IIndexer;
 import edu.gsu.dmlab.util.interfaces.IPositionPredictor;
 import org.apache.commons.configuration.Configuration;

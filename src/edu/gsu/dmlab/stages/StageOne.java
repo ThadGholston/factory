@@ -32,8 +32,8 @@ public class StageOne extends Stage {
 
     @Override
     public ArrayList<ITrack> process() {
-        DateTime startTime = eventIndexer.getFirstTime();
-        DateTime endTime = eventIndexer.getLastTime();
+        DateTime startTime = indexer.getFirstTime();
+        DateTime endTime = indexer.getLastTime();
         HashMap<UUID, ITrack> eventToTrack = new HashMap<>();
         /*for each event between start and end, find events
 		 * that are in the next frame after the current one we are looking at.
@@ -41,7 +41,8 @@ public class StageOne extends Stage {
 		 * one in the search box determined by our position predictor and the
 		 * length of the current event.
 		 */
-        for (IEvent event: eventIndexer.getEventsBetween(startTime, endTime)){
+        Interval timePeriod = new Interval(startTime, endTime);
+        for (IEvent event: (ArrayList<IEvent>) indexer.filterOnInterval(timePeriod)){
             ITrack track = eventToTrack.getOrDefault(event.getUUID(), null);
             if (track != null || track.getLast().getUUID() == event.getUUID()){
                 int positionOfTrack = track.indexOf(event);
