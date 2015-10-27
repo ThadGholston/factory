@@ -7,6 +7,7 @@ import edu.gsu.dmlab.indexes.interfaces.ITrackIndexer;
 import edu.gsu.dmlab.stages.interfaces.BaseUpperStage;
 import edu.gsu.dmlab.util.interfaces.IPositionPredictor;
 import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.ConfigurationException;
 
 import java.awt.geom.Point2D;
 
@@ -16,8 +17,8 @@ import java.awt.geom.Point2D;
 public class StageThree extends BaseUpperStage {
 
     private int maxFrameSkip;
-    public StageThree(ITrackIndexer trackIndexer, IEventIndexer eventIndexer, IPositionPredictor positionPredictor, Configuration configuration, int maxFrameSkip){
-        super(trackIndexer, positionPredictor, configuration, maxFrameSkip);
+    public StageThree(ITrackIndexer trackIndexer, IEventIndexer eventIndexer, IPositionPredictor positionPredictor, Configuration configuration, int maxFrameSkip) throws ConfigurationException{
+        super(positionPredictor, trackIndexer,  maxFrameSkip);
     }
 
     double prob(ITrack leftTrack, ITrack rightTrack) {

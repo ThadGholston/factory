@@ -6,6 +6,7 @@ import edu.gsu.dmlab.indexes.interfaces.ITrackIndexer;
 import edu.gsu.dmlab.stages.interfaces.BaseUpperStage;
 import edu.gsu.dmlab.util.interfaces.IPositionPredictor;
 import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.ConfigurationException;
 
 /**
  * Created by thad on 9/23/15.
@@ -16,8 +17,9 @@ public class StageTwo extends BaseUpperStage {
 
     ITrackIndexer trackIndexer;
 
-    public StageTwo(ITrackIndexer trackIndexer, IEventIndexer eventIndexer, IPositionPredictor positionPredictor, Configuration configuration, int maxFrameSkip) {
-        super(trackIndexer, positionPredictor, configuration, maxFrameSkip);
+	public StageTwo(ITrackIndexer trackIndexer, IEventIndexer eventIndexer, IPositionPredictor positionPredictor,
+			Configuration configuration, int maxFrameSkip) throws ConfigurationException {
+        super( positionPredictor, trackIndexer, maxFrameSkip);
     }
 
 
