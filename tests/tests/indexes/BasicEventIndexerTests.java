@@ -10,7 +10,7 @@ import java.util.ArrayList;
 /**
  * Created by thad on 10/4/15.
  */
-public class IEventIndexerTests {
+public class BasicEventIndexerTests {
 
     @Test
     public void GetExpectedChangePerFrame_NoFrames_Successful() {
