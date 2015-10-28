@@ -1,4 +1,4 @@
-package edu.gsu.dmlab.stages.interfaces;
+package edu.gsu.dmlab.stages;
 
 import edu.gsu.dmlab.ObjectFactory;
 import edu.gsu.dmlab.datatypes.interfaces.IEvent;
@@ -58,7 +58,7 @@ public abstract class Stage {
             searchArea = this.positionPredictor.getSearchRegion(event.getBBox(), motionVect, span);
         }
         Rectangle2D boundingBox = GeometryUtilities.createBoundingBox(searchArea);
-        return this.indexer.filterOnIntervalAndLocation(track.getType(), new Interval(startSearch, endSearch), boundingBox);
+        return this.indexer.filterOnIntervalAndLocation( new Interval(startSearch, endSearch), boundingBox);
     }
 
     private float[] trackNormMeanMovement(ITrack track, int position) {
