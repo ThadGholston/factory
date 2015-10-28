@@ -18,7 +18,7 @@ public class StageTwo extends BaseUpperStage {
     ITrackIndexer trackIndexer;
 
 	public StageTwo(ITrackIndexer trackIndexer, IEventIndexer eventIndexer, IPositionPredictor positionPredictor,
-			Configuration configuration, int maxFrameSkip) throws ConfigurationException {
+		 Configuration configuration, int maxFrameSkip) throws ConfigurationException {
         super( positionPredictor, trackIndexer, maxFrameSkip);
     }
 

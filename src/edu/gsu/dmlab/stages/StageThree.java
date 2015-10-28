@@ -20,6 +20,7 @@ public class StageThree extends BaseUpperStage {
     public StageThree(ITrackIndexer trackIndexer, IEventIndexer eventIndexer, IPositionPredictor positionPredictor, Configuration configuration, int maxFrameSkip) throws ConfigurationException{
         super(positionPredictor, trackIndexer,  maxFrameSkip);
     }
+    
 
     double prob(ITrack leftTrack, ITrack rightTrack) {
         double p = 1;
