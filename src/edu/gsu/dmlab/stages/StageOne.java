@@ -42,7 +42,7 @@ public class StageOne extends Stage {
 		 * length of the current event.
 		 */
         Interval timePeriod = new Interval(startTime, endTime);
-        for (IEvent event: (ArrayList<IEvent>) indexer.getAll()){
+        for (IEvent event: (ArrayList<IEvent>) indexer.filterOnInterval(timePeriod)){
             ITrack track = eventToTrack.getOrDefault(event.getUUID(), null);
             if (track != null || track.getLast().getUUID() == event.getUUID()){
                 int positionOfTrack = track.indexOf(event);
