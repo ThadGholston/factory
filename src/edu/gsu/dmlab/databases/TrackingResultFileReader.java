@@ -9,17 +9,17 @@
 package edu.gsu.dmlab.databases;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
+import edu.gsu.dmlab.datatypes.EventType;
+import edu.gsu.dmlab.exceptions.UnknownEventTypeException;
+import edu.gsu.dmlab.geometry.Point2D;
+import edu.gsu.dmlab.geometry.Rectangle2D;
 import org.joda.time.Interval;
-import org.opencv.core.Point;
-import org.opencv.core.Rect;
 
 import edu.gsu.dmlab.conversion.CoordinateSystemConverter;
 import edu.gsu.dmlab.datatypes.GenaricEvent;
@@ -29,33 +29,31 @@ import edu.gsu.dmlab.datatypes.interfaces.ITrack;
 
 public class TrackingResultFileReader {
 	int span;
-	String fileLocation;
 	SimpleDateFormat formatter = null;
+	BufferedReader in;
 
-	public TrackingResultFileReader(String fileLocation, int span) {
-		if (fileLocation == null)
+	public TrackingResultFileReader(BufferedReader in, int span) {
+		if (in == null)
 			throw new IllegalArgumentException(
-					"fileLocation cannot be null in GenaricEvet constructor.");
-		this.fileLocation = fileLocation;
+					"fileLocation cannot be null in GenaricEvent constructor.");
+		this.in = in;
 		this.span = span;
 		this.formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	}
 
-	public ITrack[] getTracks(String type) throws IOException {
+	public ITrack[] getTracks(String type) throws IOException, UnknownEventTypeException {
 
-		ArrayList<ITrack> tmpList = new ArrayList<ITrack>();
+		ArrayList<ITrack> tmpList = new ArrayList<>();
 
 		BufferedReader in = null;
 		try {
-			in = new BufferedReader(new FileReader(this.fileLocation
-					+ File.separator + type + "DustinTracked.txt"));
-			String line = null;
+			String line;
 
 			int lastTrackId = 0;
 			int count = 0;
 			IEvent lastEvent = null;
-
-			while ((line = in.readLine()) != null) {
+			ITrack track = null;
+			while ((line = this.in.readLine()) != null) {
 				String[] lineSplit = line.split("\t");
 				if (lineSplit.length > 6) {
 					String eventTypeString, startTimeString, hpc_coord_string, hpc_bbox_string, hpc_ccode_string;
@@ -70,10 +68,10 @@ public class TrackingResultFileReader {
 					hpc_coord_string = this.removeBrackets(hpc_coord_string);
 					hpc_bbox_string = this.removeBrackets(hpc_bbox_string);
 
-					Point tmp_coord = this.getPoint(hpc_coord_string);
-					Point[] hpc_bbox_poly = this.getPoly(hpc_bbox_string);
+					Point2D tmp_coord = this.getPoint(hpc_coord_string);
+					Point2D[] hpc_bbox_poly = this.getPoly(hpc_bbox_string);
 
-					Point[] hpc_ccode = null;
+					Point2D[] hpc_ccode = null;
 					if (!hpc_ccode_string.isEmpty()) {
 						hpc_ccode_string = this
 								.removeBrackets(hpc_ccode_string);
@@ -88,12 +86,42 @@ public class TrackingResultFileReader {
 					Interval range = new Interval(startDate.getTime(),
 							startDate.getTime() + (this.span * 1000));
 
+					EventType eventType = null;
+					switch (eventTypeString){
+						case "AR":
+							eventType = EventType.ACTIVE_REGION;
+							break;
+						case "CH":
+							eventType = EventType.CORONAL_HOLE;
+							break;
+						case "EF":
+							eventType = EventType.EMERGING_FLUX;
+							break;
+						case "FI":
+							eventType = EventType.FILAMENT;
+							break;
+						case "FL":
+							eventType = EventType.FLARE;
+							break;
+						case "SG":
+							eventType = EventType.SIGMOID;
+							break;
+						case "SS":
+							eventType = EventType.SUNSPOT;
+							break;
+						default:
+							throw new UnknownEventTypeException("Unrecognized event type: "  + eventTypeString);
+					}
+
 					IEvent ev = new GenaricEvent(count++, range, tmp_coord,
 							this.getRect(hpc_bbox_poly), hpc_ccode,
-							eventTypeString);
+							eventType);
 					if (trackId == lastTrackId) {
-						lastEvent.setNext(ev);
-						ev.setPrevious(lastEvent);
+						if (track == null) {
+							track = new Track(ev);
+						} else {
+							track.add(ev);
+						}
 						Interval tmpRange = lastEvent.getTimePeriod();
 						Interval newRange = tmpRange.withEndMillis(range
 								.getEndMillis());
@@ -103,8 +131,8 @@ public class TrackingResultFileReader {
 						lastEvent.updateTimePeriod(newRange);
 						lastEvent = ev;
 					} else {
-						ITrack track = new Track(ev, ev);
 						tmpList.add(track);
+						track = null;
 						lastEvent = ev;
 						lastTrackId = trackId;
 					}
@@ -126,23 +154,23 @@ public class TrackingResultFileReader {
 	}
 
 	/**
-	 * getPoly: returns a list of 2D points extracted from the input string the
-	 * list of points are assumed to create a polygon, they are not tested
+	 * getPoly: returns a objectList of 2D points extracted from the input string the
+	 * objectList of points are assumed to create a polygon, they are not tested
 	 * 
 	 * @param pointsString
 	 *            :the string to extract the points from
-	 * @return :returns the list of 2D points
+	 * @return :returns the objectList of 2D points
 	 */
-	private Point[] getPoly(String pointsString) {
+	private Point2D[] getPoly(String pointsString) {
 		String[] pointsStrings = pointsString.split(",");
 		String xy;
-		ArrayList<Point> pointsList = new ArrayList<Point>();
+		ArrayList<Point2D> pointsList = new ArrayList<>();
 		for (int i = 0; i < pointsStrings.length; i++) {
 			xy = pointsStrings[i];
 			pointsList.add(this.getPoint(xy));
 		}
 
-		Point[] points = new Point[pointsList.size()];
+		Point2D[] points = new Point2D[pointsList.size()];
 		pointsList.toArray(points);
 		return points;
 	}
@@ -154,11 +182,11 @@ public class TrackingResultFileReader {
 	 *            :input string containing x and y coordinate
 	 * @return :the 2D point extracted from the string
 	 */
-	private Point getPoint(String xy) {
+	private Point2D getPoint(String xy) {
 		int spaceIdx = xy.indexOf(' ');
 		double x = Double.parseDouble(xy.substring(0, spaceIdx));
 		double y = Double.parseDouble(xy.substring(spaceIdx));
-		return CoordinateSystemConverter.convertHPCToPixXY(new Point(x, y));
+		return (Point2D) CoordinateSystemConverter.convertHPCToPixXY(new Point2D(x, y));
 	}
 
 	/**
@@ -180,10 +208,10 @@ public class TrackingResultFileReader {
 		return in;
 	}
 
-	private Rect getRect(Point[] poly) {
+	private Rectangle2D getRect(Point2D[] poly) {
 		double minX, minY, maxX, maxY;
 
-		Point point = poly[0];
+		Point2D point = poly[0];
 		// Point2i point = this->convertToPixXY(pointf);
 		minX = point.x;
 		maxX = point.x;
@@ -203,7 +231,7 @@ public class TrackingResultFileReader {
 				maxY = point.y;
 		}
 
-		Rect rec = new Rect();
+		Rectangle2D rec = new Rectangle2D();
 		rec.x = (int) minX;
 		rec.y = (int) minY;
 		rec.height = (int) (maxY - minY);

@@ -1,5 +1,5 @@
 /**
- * 
+ *
  * File: GenaricEvent.java is a genaric event type used to represent a single
  * detection of a solar event taken from HEK.  
  * @author Dustin Kempton
@@ -11,39 +11,40 @@ package edu.gsu.dmlab.datatypes;
 
 import java.util.UUID;
 
+import edu.gsu.dmlab.datatypes.interfaces.IBaseDataType;
+import edu.gsu.dmlab.geometry.Point2D;
+import edu.gsu.dmlab.geometry.Rectangle2D;
 import org.joda.time.Interval;
-import org.opencv.core.Point;
-import org.opencv.core.Rect;
 
 import edu.gsu.dmlab.datatypes.interfaces.IEvent;
 
 public class GenaricEvent implements IEvent {
 
 	private int id;
-	private Point[] poly = null;
-	private Rect bBox = null;
-	private Point location = null;
+	private Point2D[] poly = null;
+	private Rectangle2D bBox = null;
+	private Point2D location = null;
 	private Interval timePeriod = null;
-	private String type = null;
+	private EventType type = null;
 
 	IEvent next = null;
 	IEvent previous = null;
 	UUID uniqueId = null;
 
-	public GenaricEvent(int id, Interval timePeriod, Point location, Rect bbox,
-			Point[] poly, String type) {
+	public GenaricEvent(int id, Interval timePeriod, Point2D location, Rectangle2D bbox,
+						Point2D[] poly, EventType type) {
 		if (timePeriod == null)
 			throw new IllegalArgumentException(
 					"Interval cannot be null in GenaricEvet constructor.");
 		if (location == null)
 			throw new IllegalArgumentException(
-					"Point cannot be null in GenaricEvet constructor.");
+					"Point2D cannot be null in GenaricEvet constructor.");
 		if (bbox == null)
 			throw new IllegalArgumentException(
-					"Rect cannot be null in GenaricEvet constructor.");
+					"Rectangle2D cannot be null in GenaricEvet constructor.");
 		if (poly == null)
 			throw new IllegalArgumentException(
-					"Point[] cannot be null in GenaricEvet constructor.");
+					"Point2D[] cannot be null in GenaricEvet constructor.");
 		if (type == null)
 			throw new IllegalArgumentException(
 					"Type cannot be null in GenaricEvet constructor.");
@@ -55,6 +56,10 @@ public class GenaricEvent implements IEvent {
 		this.timePeriod = timePeriod;
 		this.type = type;
 		this.uniqueId = UUID.randomUUID();
+	}
+
+	private EventType convertStringToEventType(String eventType){
+		return EventType.ACTIVE_REGION;
 	}
 
 	/*
@@ -73,7 +78,7 @@ public class GenaricEvent implements IEvent {
 	 * @see edu.gsu.dmlab.datatypes.interfaces.IEvent#getLocation()
 	 */
 	@Override
-	public Point getLocation() {
+	public Point2D getLocation() {
 		return this.location;
 	}
 
@@ -83,7 +88,7 @@ public class GenaricEvent implements IEvent {
 	 * @see edu.gsu.dmlab.datatypes.interfaces.IEvent#getBBox()
 	 */
 	@Override
-	public Rect getBBox() {
+	public Rectangle2D getBBox() {
 		return this.bBox;
 	}
 
@@ -93,7 +98,7 @@ public class GenaricEvent implements IEvent {
 	 * @see edu.gsu.dmlab.datatypes.interfaces.IEvent#getShape()
 	 */
 	@Override
-	public Point[] getShape() {
+	public Point2D[] getShape() {
 		return this.poly;
 	}
 
@@ -105,6 +110,16 @@ public class GenaricEvent implements IEvent {
 	@Override
 	public Interval getTimePeriod() {
 		return this.timePeriod;
+	}
+
+	@Override
+	public int compareTime(IBaseDataType baseDataType) {
+		return this.getTimePeriod().getStart().compareTo(baseDataType.getTimePeriod().getStart());
+	}
+
+	@Override
+	public boolean intersects(Interval interval) {
+		return interval.overlaps(this.timePeriod);
 	}
 
 	/*
@@ -125,57 +140,77 @@ public class GenaricEvent implements IEvent {
 	 * @see edu.gsu.dmlab.datatypes.interfaces.IEvent#getType()
 	 */
 	@Override
-	public String getType() {
+	public EventType getType() {
 		return this.type;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see edu.gsu.dmlab.datatypes.interfaces.IEvent#getPrevious()
-	 */
 	@Override
-	public IEvent getPrevious() {
-		return this.previous;
+	public boolean isBefore(Interval timePeriod) {
+		return this.getTimePeriod().isBefore(timePeriod);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * edu.gsu.dmlab.datatypes.interfaces.IEvent#setPrevious(edu.gsu.dmlab.datatypes
-	 * .interfaces.IEvent)
-	 */
 	@Override
-	public void setPrevious(IEvent event) {
-		if (this.previous == null) {
-			this.previous = event;
-		}
+	public boolean isBefore(IBaseDataType obj) {
+		return this.getTimePeriod().isBefore(obj.getTimePeriod());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see edu.gsu.dmlab.datatypes.interfaces.IEvent#getNext()
-	 */
 	@Override
-	public IEvent getNext() {
-		return this.next;
+	public boolean isAfter(Interval timePeriod) {
+		return this.getTimePeriod().isAfter(timePeriod);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * edu.gsu.dmlab.datatypes.interfaces.IEvent#setNext(edu.gsu.dmlab.datatypes
-	 * .interfaces.IEvent)
-	 */
 	@Override
-	public void setNext(IEvent event) {
-		if (this.next == null) {
-			this.next = event;
-		}
+	public boolean isAfter(IBaseDataType obj) {
+		return this.getTimePeriod().isAfter(obj.getTimePeriod());
 	}
+
+//	/*
+//	 * (non-Javadoc)
+//	 *
+//	 * @see edu.gsu.dmlab.datatypes.interfaces.IEvent#getPrevious()
+//	 */
+//	@Override
+//	public IEvent getPrevious() {
+//		return this.previous;
+//	}
+//
+//	/*
+//	 * (non-Javadoc)
+//	 *
+//	 * @see
+//	 * edu.gsu.dmlab.datatypes.interfaces.IEvent#setPrevious(edu.gsu.dmlab.datatypes
+//	 * .interfaces.IEvent)
+//	 */
+//	@Override
+//	public void setPrevious(IEvent event) {
+//		if (this.previous == null) {
+//			this.previous = event;
+//		}
+//	}
+//
+//	/*
+//	 * (non-Javadoc)
+//	 *
+//	 * @see edu.gsu.dmlab.datatypes.interfaces.IEvent#getNext()
+//	 */
+//	@Override
+//	public IEvent getNext() {
+//		return this.next;
+//	}
+//
+//	/*
+//	 * (non-Javadoc)
+//	 *
+//	 * @see
+//	 * edu.gsu.dmlab.datatypes.interfaces.IEvent#setNext(edu.gsu.dmlab.datatypes
+//	 * .interfaces.IEvent)
+//	 */
+//	@Override
+//	public void setNext(IEvent event) {
+//		if (this.next == null) {
+//			this.next = event;
+//		}
+//	}
 
 	/*
 	 * (non-Javadoc)

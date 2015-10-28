@@ -13,11 +13,28 @@ package edu.gsu.dmlab.datatypes.interfaces;
 
 import org.joda.time.Interval;
 
+import java.util.UUID;
+
 public interface IBaseDataType {
 
 	/**
 	 * Returns the time period that the object is valid for
 	 * @return
 	 */
-	public Interval getTimePeriod();
+	Interval getTimePeriod();
+
+	int compareTime(IBaseDataType baseDataType);
+
+	boolean intersects(Interval interval);
+
+	boolean isBefore(Interval timePeriod);
+
+	boolean isBefore(IBaseDataType obj);
+
+	boolean isAfter(Interval timePeriod);
+
+	boolean isAfter(IBaseDataType obj);
+
+	UUID getUUID();
+
 }

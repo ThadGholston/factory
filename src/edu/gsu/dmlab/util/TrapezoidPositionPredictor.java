@@ -4,17 +4,15 @@
  * Similarly, this file also produces a search based upon the polygon representation or the mbr of
  * an object. The search are is a trapezoid that starts as the size of the mbr at the left and opens
  * up to the right.
- *   
+ *
  * @author Dustin Kempton
  * @version 06/03/2015 
  * @Owner Data Mining Lab, Georgia State University
  */
 package edu.gsu.dmlab.util;
 
-
-import org.opencv.core.Point;
-import org.opencv.core.Rect;
-
+import edu.gsu.dmlab.geometry.Point2D;
+import edu.gsu.dmlab.geometry.Rectangle2D;
 import edu.gsu.dmlab.util.interfaces.IPositionPredictor;
 
 public class TrapezoidPositionPredictor implements IPositionPredictor {
@@ -24,7 +22,7 @@ public class TrapezoidPositionPredictor implements IPositionPredictor {
 	 * getPredictedPos :returns the predicted position of a point, for the
 	 * change in time, based upon the latitude of the point and the solar
 	 * rotation at that latitude.
-	 * 
+	 *
 	 * @param point
 	 *            :the point to calculate the new position of.
 	 * @param span
@@ -33,27 +31,27 @@ public class TrapezoidPositionPredictor implements IPositionPredictor {
 	 * @return :a new point with the new coordinates
 	 */
 	@Override
-	public Point getPredictedPos(Point point, double span) {
+	public Point2D getPredictedPos(Point2D point, double span) {
 		// TODO Auto-generated method stub
-		Point HGSCoord = CoordinateSystemConverter.convertPixXYToHGS(point);
+		Point2D HGSCoord = CoordinateSystemConverter.convertPixXYToHGS(point);
 		HGSCoord = this.calcNewLoc(HGSCoord, span);
 		return CoordinateSystemConverter.convertHGSToPixXY(HGSCoord);
 	}
 
 	/**
 	 * getPredictedPos :returns the predicted position of all the points in the
-	 * list, for the change in time,based upon the latitude of the point and the
+	 * objectList, for the change in time,based upon the latitude of the point and the
 	 * solar rotation at that latitude.
-	 * 
+	 *
 	 * @param poly
-	 *            :the list of point to calculate the new position of.
-	 * @param spanDays
+	 *            :the objectList of point to calculate the new position of.
+	 * @param span
 	 *            :the time span used to determine how far the sun has rotated
-	 * @return :a new list of points with the new coordinates
+	 * @return :a new objectList of points with the new coordinates
 	 */
 	@Override
-	public Point[] getPredictedPos(Point[] poly, double span) {
-		Point[] outArr = new Point[poly.length];
+	public Point2D[] getPredictedPos(Point2D[] poly, double span) {
+		Point2D[] outArr = new Point2D[poly.length];
 		for (int i = 0; i < poly.length; i++) {
 			outArr[i] = this.getPredictedPos(poly[i], span);
 		}
@@ -61,45 +59,45 @@ public class TrapezoidPositionPredictor implements IPositionPredictor {
 	}
 
 	@Override
-	public Point[] getPredictedPos(Point[] poly, float[] movementVect,
-			double span) {
+	public Point2D[] getPredictedPos(Point2D[] poly, float[] movementVect,
+								   double span) {
 
-		Point[] outArr = new Point[poly.length];
+		Point2D[] outArr = new Point2D[poly.length];
 		double xMove = movementVect[0] * span;
 		double yMove = movementVect[1] * span;
 
 		for (int i = 0; i < poly.length; i++) {
-			outArr[i] = new Point(poly[i].x + xMove, poly[i].y + yMove);
+			outArr[i] = new Point2D(poly[i].x + xMove, poly[i].y + yMove);
 		}
 		return outArr;
 	}
 
 	@Override
-	public Point[] getSearchRegion(Rect bBox, double span) {
+	public Point2D[] getSearchRegion(Rectangle2D bBox, double span) {
 
-		Point oldCorner = new Point(bBox.x, bBox.y);
-		Point rotatedCorner = this.getPredictedPos(oldCorner, span);
+		Point2D oldCorner = new Point2D(bBox.x, bBox.y);
+		Point2D rotatedCorner = this.getPredictedPos(oldCorner, span);
 
-		Point rotatedLowerLeft = new Point(rotatedCorner.x, rotatedCorner.y
+		Point2D rotatedLowerLeft = new Point2D(rotatedCorner.x, rotatedCorner.y
 				+ bBox.height);
 
-		Point upperLeft = rotatedCorner;
-		Point lowerLeft = rotatedLowerLeft;
+		Point2D upperLeft = rotatedCorner;
+		Point2D lowerLeft = rotatedLowerLeft;
 
-		Point upperCenterRight = new Point((rotatedCorner.x + bBox.width),
+		Point2D upperCenterRight = new Point2D((rotatedCorner.x + bBox.width),
 				rotatedCorner.y);
-		Point lowerCenterRight = new Point((rotatedLowerLeft.x + bBox.width),
+		Point2D lowerCenterRight = new Point2D((rotatedLowerLeft.x + bBox.width),
 				rotatedLowerLeft.y);
 
 		double length = upperCenterRight.x - upperLeft.x;
 		double addedHeight = Math.tan(Math.toRadians(THETA)) * length;
 
-		Point lowerRight = new Point(lowerCenterRight.x, lowerCenterRight.y
+		Point2D lowerRight = new Point2D(lowerCenterRight.x, lowerCenterRight.y
 				- addedHeight);
-		Point upperRight = new Point(upperCenterRight.x, upperCenterRight.y
+		Point2D upperRight = new Point2D(upperCenterRight.x, upperCenterRight.y
 				+ addedHeight);
 
-		Point[] out = new Point[7];
+		Point2D[] out = new Point2D[7];
 		out[0] = upperLeft;
 		out[1] = lowerLeft;
 		out[2] = lowerRight;
@@ -112,35 +110,35 @@ public class TrapezoidPositionPredictor implements IPositionPredictor {
 	}
 
 	@Override
-	public Point[] getSearchRegion(Rect bBox, float[] movementVect, double span) {
+	public Point2D[] getSearchRegion(Rectangle2D bBox, float[] movementVect, double span) {
 
 		double xMove = movementVect[0] * span;
 		double yMove = movementVect[1] * span;
 
-		Point oldCorner = new Point(bBox.x, bBox.y);
-		Point rotatedCorner = new Point(oldCorner.x + xMove, oldCorner.y
+		Point2D oldCorner = new Point2D(bBox.x, bBox.y);
+		Point2D rotatedCorner = new Point2D(oldCorner.x + xMove, oldCorner.y
 				+ yMove);
 
-		Point rotatedLowerLeft = new Point(rotatedCorner.x, rotatedCorner.y
+		Point2D rotatedLowerLeft = new Point2D(rotatedCorner.x, rotatedCorner.y
 				+ bBox.height);
 
-		Point upperLeft = rotatedCorner;
-		Point lowerLeft = rotatedLowerLeft;
+		Point2D upperLeft = rotatedCorner;
+		Point2D lowerLeft = rotatedLowerLeft;
 
-		Point upperCenterRight = new Point((rotatedCorner.x + bBox.width),
+		Point2D upperCenterRight = new Point2D((rotatedCorner.x + bBox.width),
 				rotatedCorner.y);
-		Point lowerCenterRight = new Point((rotatedLowerLeft.x + bBox.width),
+		Point2D lowerCenterRight = new Point2D((rotatedLowerLeft.x + bBox.width),
 				rotatedLowerLeft.y);
 
 		double length = upperCenterRight.x - upperLeft.x;
 		double addedHeight = Math.tan(Math.toRadians(THETA)) * length;
 
-		Point lowerRight = new Point(lowerCenterRight.x, lowerCenterRight.y
+		Point2D lowerRight = new Point2D(lowerCenterRight.x, lowerCenterRight.y
 				- addedHeight);
-		Point upperRight = new Point(upperCenterRight.x, upperCenterRight.y
+		Point2D upperRight = new Point2D(upperCenterRight.x, upperCenterRight.y
 				+ addedHeight);
 
-		Point[] out = new Point[7];
+		Point2D[] out = new Point2D[7];
 		out[0] = upperLeft;
 		out[1] = lowerLeft;
 		out[2] = lowerRight;
@@ -155,7 +153,7 @@ public class TrapezoidPositionPredictor implements IPositionPredictor {
 	/**
 	 * calcNewLoc :calculates the new location in HGS based on time passed and
 	 * latitude
-	 * 
+	 *
 	 * @param pointIn
 	 *            :point in HGS to calculate the new position of
 	 * @param days
@@ -163,11 +161,11 @@ public class TrapezoidPositionPredictor implements IPositionPredictor {
 	 *            position of the point
 	 * @return : point with new HGS coordinates
 	 */
-	Point calcNewLoc(Point pointIn, double days) {
+	Point2D calcNewLoc(Point2D pointIn, double days) {
 		double x = pointIn.x
 				+ days
 				* (14.44 - 3.0 * Math.pow(Math.sin(Math.toDegrees(pointIn.y)),
-						2.0));
+				2.0));
 		pointIn.x = x;
 		return pointIn;
 	}

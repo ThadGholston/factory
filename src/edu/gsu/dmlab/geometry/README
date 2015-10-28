@@ -1,0 +1,9 @@
+For the sake of clarity and brevity creating classes that will rename
+
+Rectangle2D.Double - Rectangle2D
+Rectangle2D.Double - Rectangle2F
+Point2D.Double - Point2D
+Point2D.Float - Point2F
+
+At times the class Double/Float can conflict with the Double and Float in the
+java.lang package.

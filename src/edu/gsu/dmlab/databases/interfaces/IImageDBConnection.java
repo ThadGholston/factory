@@ -20,9 +20,9 @@ import edu.gsu.dmlab.datatypes.interfaces.IEvent;
 import java.sql.SQLException;
 
 public interface IImageDBConnection {
-	public float[][][] getImageParam(IEvent event, int wavelength,
-			boolean leftSide);
+	float[][][] getImageParam(IEvent event, int wavelength,
+							  boolean leftSide);
 
-	public Mat getFirstImage(Interval period, int wavelength)
+	Mat getFirstImage(Interval period, int wavelength)
 			throws SQLException;
 }

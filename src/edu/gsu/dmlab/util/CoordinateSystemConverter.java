@@ -16,8 +16,8 @@
  */
 package edu.gsu.dmlab.util;
 
+import edu.gsu.dmlab.geometry.Point2D;
 import org.apache.commons.math3.complex.Complex;
-import org.opencv.core.Point;
 
 public class CoordinateSystemConverter {
 
@@ -28,72 +28,72 @@ public class CoordinateSystemConverter {
 	static final double dsun_meters = 149600000;
 
 	/**
-	 * convertToPixXY :converts a point in HPC coordinates to Pixel XY
+	 * convertToPixXY :converts a Point2D in HPC coordinates to Pixel XY
 	 * coordinates
 	 * 
 	 * @param pointIn
-	 *            :point to convert
-	 * @return :a new point in Pixel XY coordinates
+	 *            :Point2D to convert
+	 * @return :a new Point2D in Pixel XY coordinates
 	 */
-	public static Point convertHPCToPixXY(Point pointIn) {
+	public static Point2D convertHPCToPixXY(Point2D pointIn) {
 		double PixX = (CoordinateSystemConverter.HPCCENTER + (pointIn.x / CoordinateSystemConverter.CDELT));
 		double PixY = (CoordinateSystemConverter.HPCCENTER - (pointIn.y / CoordinateSystemConverter.CDELT));
-		return new Point(PixX, PixY);
+		return new Point2D(PixX, PixY);
 	}
 
 	/**
-	 * convertToPixXY :converts a point in HGS coordinates to Pixel XY
+	 * convertToPixXY :converts a Point2D in HGS coordinates to Pixel XY
 	 * coordinates
 	 * 
 	 * @param pointIn
-	 *            :point to convert
-	 * @return :a new point in Pixel XY coordinates
+	 *            :Point2D to convert
+	 * @return :a new Point2D in Pixel XY coordinates
 	 */
-	public static Point convertHGSToPixXY(Point pointIn) {
-		Point pointHCC = CoordinateSystemConverter.convertHG_HCC(pointIn.x,
+	public static Point2D convertHGSToPixXY(Point2D pointIn) {
+		Point2D pointHCC = CoordinateSystemConverter.convertHG_HCC(pointIn.x,
 				pointIn.y);
-		Point pointHPC = CoordinateSystemConverter.convertHCC_HPC(pointHCC.x,
+		Point2D pointHPC = CoordinateSystemConverter.convertHCC_HPC(pointHCC.x,
 				pointHCC.y);
 
 		double PixX = (CoordinateSystemConverter.HPCCENTER + (pointHPC.x / CoordinateSystemConverter.CDELT));
 		double PixY = (CoordinateSystemConverter.HPCCENTER - (pointHPC.y / CoordinateSystemConverter.CDELT));
-		return new Point(PixX, PixY);
+		return new Point2D(PixX, PixY);
 	}
 
 	/**
-	 * convertToHGS :converts a point in Pixel XY coordinates to HGS coordinates
+	 * convertToHGS :converts a Point2D in Pixel XY coordinates to HGS coordinates
 	 * 
 	 * @param pointIn
-	 *            :the point to convert
-	 * @return :a new point in HGS
+	 *            :the Point2D to convert
+	 * @return :a new Point2D in HGS
 	 */
-	public static Point convertPixXYToHGS(Point pointIn) {
+	public static Point2D convertPixXYToHGS(Point2D pointIn) {
 		double HPCx = (pointIn.x - CoordinateSystemConverter.HPCCENTER)
 				* CoordinateSystemConverter.CDELT;
 		double HPCy = (CoordinateSystemConverter.HPCCENTER - pointIn.y)
 				* CoordinateSystemConverter.CDELT;
 
-		Point hccPoint = CoordinateSystemConverter.convertHPC_HCC(HPCx, HPCy);
-		Point hgsPoint = CoordinateSystemConverter.convertHCC_HG(hccPoint.x,
+		Point2D hccPoint = CoordinateSystemConverter.convertHPC_HCC(HPCx, HPCy);
+		Point2D hgsPoint = CoordinateSystemConverter.convertHCC_HG(hccPoint.x,
 				hccPoint.y);
 
 		return hgsPoint;
 	}
 
 	/**
-	 * convertToHGS :converts a point in Pixel XY coordinates to HPC coordinates
+	 * convertToHGS :converts a Point2D in Pixel XY coordinates to HPC coordinates
 	 * 
 	 * @param pointIn
-	 *            :the point to convert
-	 * @return :a new point in HPC
+	 *            :the Point2D to convert
+	 * @return :a new Point2D in HPC
 	 */
-	public static Point convertPixXYToHPC(Point pointIn) {
+	public static Point2D convertPixXYToHPC(Point2D pointIn) {
 		double HPCx = (pointIn.x - CoordinateSystemConverter.HPCCENTER)
 				* CoordinateSystemConverter.CDELT;
 		double HPCy = (CoordinateSystemConverter.HPCCENTER - pointIn.y)
 				* CoordinateSystemConverter.CDELT;
 
-		Point ptd = new Point(HPCx, HPCy);
+		Point2D ptd = new Point2D(HPCx, HPCy);
 		return ptd;
 	}
 
@@ -138,7 +138,7 @@ public class CoordinateSystemConverter {
 	// (230000.0, 45000000.0, 703508000.0)
 	// """
 	// ************************************************************************/
-	static Point convertHG_HCC(double hglon_deg, double hglat_deg) {
+	static Point2D convertHG_HCC(double hglon_deg, double hglat_deg) {
 
 		double b0_deg = 0;
 		double l0_deg = 0;
@@ -161,7 +161,7 @@ public class CoordinateSystemConverter {
 				* (siny * cosb - cosy * cosx * sinb);
 		// double zz = r * (siny * sinb + cosy * cosx * cosb);
 
-		return new Point(x, y);
+		return new Point2D(x, y);
 	}
 
 	// ************************************************************************/
@@ -188,7 +188,7 @@ public class CoordinateSystemConverter {
 	// The data coordinates (x,y,z) in heliocentric cartesian coordinates in
 	// meters.
 	// ************************************************************************/
-	static Point convertHPC_HCC(double x, double y) {
+	static Point2D convertHPC_HCC(double x, double y) {
 
 		double arcSec = Math.toRadians(1) / (60 * 60);
 		double cosx = Math.cos(x * arcSec);
@@ -212,7 +212,7 @@ public class CoordinateSystemConverter {
 		double rx = distance * cosy * sinx;
 		double ry = distance * siny;
 
-		return new Point(rx, ry);
+		return new Point2D(rx, ry);
 	}
 
 	// ************************************************************************/
@@ -245,7 +245,7 @@ public class CoordinateSystemConverter {
 	// # Calculate the z coordinate by assuming that it is on the surface of the
 	// Sun */
 	// ************************************************************************/
-	static Point convertHCC_HPC(double x, double y) {
+	static Point2D convertHCC_HPC(double x, double y) {
 		double z = Math.sqrt(Math.pow(CoordinateSystemConverter.rsun_meters, 2)
 				- Math.pow(x, 2) - Math.pow(y, 2));
 
@@ -259,7 +259,7 @@ public class CoordinateSystemConverter {
 		hpcx = 60 * 60 * hpcx;
 		hpcy = 60 * 60 * hpcy;
 
-		return new Point(hpcx, hpcy);
+		return new Point2D(hpcx, hpcy);
 	}
 
 	// ************************************************************************/
@@ -293,7 +293,7 @@ public class CoordinateSystemConverter {
 	// (lon, lat) are the heliographic coordinates in degrees. The quantity
 	// 'r' is the heliographic radius in meters.
 	// ************************************************************************/
-	static Point convertHCC_HG(double x, double y) {
+	static Point2D convertHCC_HG(double x, double y) {
 
 		float b0_deg = 0;
 		float l0_deg = 0;
@@ -316,6 +316,6 @@ public class CoordinateSystemConverter {
 				+ Math.toRadians(l0_deg);
 		double hglt = Math.asin((y * cosb + z * sinb) / hecr);
 
-		return new Point(Math.toDegrees(hgln), Math.toDegrees(hglt));
+		return new Point2D(Math.toDegrees(hgln), Math.toDegrees(hglt));
 	}
 }
