@@ -6,10 +6,7 @@ import edu.gsu.dmlab.geometry.Rectangle2D;
 import edu.gsu.dmlab.datatypes.interfaces.ITrack;
 import edu.gsu.dmlab.indexes.interfaces.AbsMatIndexer;
 import edu.gsu.dmlab.indexes.interfaces.IIndexer;
-import edu.gsu.dmlab.indexes.interfaces.ITrackIndexer;
-
 import org.apache.commons.configuration.ConfigurationException;
-import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
 import java.util.ArrayList;
@@ -19,14 +16,13 @@ import java.util.stream.IntStream;
 /**
  * Created by thad on 10/11/15.
  */
-public class BasicTrackIndexer extends AbsMatIndexer<ITrack> implements ITrackIndexer {
+public class BasicTrackIndexer extends AbsMatIndexer implements IIndexer {
 
-	
-    public BasicTrackIndexer(ArrayList<ITrack> list, int regionDimension) throws ConfigurationException {
-        super(list, regionDimension);
+    public BasicTrackIndexer(ArrayList list) throws ConfigurationException {
+        super(list);
     }
 
-  
+    @Override
     protected void buildIndex() {
         objectList.parallelStream().forEach(track -> {
             indexTrack((ITrack) track);
@@ -58,7 +54,7 @@ public class BasicTrackIndexer extends AbsMatIndexer<ITrack> implements ITrackIn
     private void popStartRecArea(Rectangle2D boundingBox, ITrack track) {
         IntStream.rangeClosed((int) boundingBox.getMinX(), (int) boundingBox.getMaxX()).parallel().forEach(x -> {
             IntStream.rangeClosed((int) boundingBox.getMinY(), (int) boundingBox.getMaxY()).parallel().forEach(y -> {
-                searchSpace[x][y].add(track);
+                searchSpace[x][y][track.getType().getValue()].add(track);
             });
         });
     }
@@ -69,18 +65,14 @@ public class BasicTrackIndexer extends AbsMatIndexer<ITrack> implements ITrackIn
         Rectangle2D boundingBox = GeometryUtilities.getScaledBoundingBox(track.getFirst().getShape(), regionDivisor);
         IntStream.rangeClosed((int) boundingBox.getMinX(), (int) boundingBox.getMaxX()).parallel().forEach(x -> {
             IntStream.rangeClosed((int) boundingBox.getMinY(), (int) boundingBox.getMaxY()).parallel().forEach(y -> {
-                searchSpace[x][y].add(track);
+                searchSpace[x][y][track.getType().getValue()].add(track);
             });
         });
     }
 
-
-	@Override
-	public ArrayList<ITrack> filterOnInterval(Interval timePeriod) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-
+    @Override
+    public ArrayList filterOnInterval(EventType type, Interval timePeriod) {
+        return null;
+    }
 
 }

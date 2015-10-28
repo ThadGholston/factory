@@ -1,14 +1,12 @@
 package edu.gsu.dmlab.indexes;
 
-
+import edu.gsu.dmlab.datatypes.EventType;
 import edu.gsu.dmlab.geometry.GeometryUtilities;
 import edu.gsu.dmlab.geometry.Point2D;
 import edu.gsu.dmlab.datatypes.interfaces.IEvent;
 import edu.gsu.dmlab.geometry.Rectangle2D;
 import edu.gsu.dmlab.indexes.interfaces.AbsMatIndexer;
 import edu.gsu.dmlab.indexes.interfaces.IEventIndexer;
-
-
 import org.apache.commons.configuration.ConfigurationException;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
@@ -19,15 +17,13 @@ import java.util.*;
 
 /**
  * Created by thad on 10/11/15.
- * Edited by Dustin Kempton on 10/27/15
  */
-public class BasicEventIndexer extends AbsMatIndexer<IEvent>   implements IEventIndexer{
+public class BasicEventIndexer extends AbsMatIndexer implements IEventIndexer {
     Duration frameSpan;
     Interval globalTimePeriod;
     HashMap<Long, ArrayList<IEvent>> frames;
-    
-    public BasicEventIndexer(ArrayList<IEvent> regionalList, int regionDimension) throws ConfigurationException {
-        super(regionalList, regionDimension);
+    public BasicEventIndexer(ArrayList regionalList) throws ConfigurationException {
+        super(regionalList);
         frameSpan = new Duration(0,1); //TODO: Get real frame interval
         globalTimePeriod = new Interval(0, 1); // TODO: Get real duration
         this.buildIndex();
@@ -39,7 +35,7 @@ public class BasicEventIndexer extends AbsMatIndexer<IEvent>   implements IEvent
     }
 
     @Override
-    public ArrayList<IEvent> filterOnInterval( Interval timePeriod) {
+    public ArrayList<IEvent> filterOnInterval(EventType type, Interval timePeriod) {
         HashMap<UUID, IEvent> results = new HashMap<>();
         if(!this.globalTimePeriod.overlaps(timePeriod)){
             return (ArrayList<IEvent>)results.values();
@@ -62,20 +58,19 @@ public class BasicEventIndexer extends AbsMatIndexer<IEvent>   implements IEvent
         buildFrameIndex(event);
     }
 
-
-	private void insertEventIntoSearchSpace(IEvent event){
+    private void insertEventIntoSearchSpace(IEvent event){
         Point2D[] shape = event.getShape();
         Point2D[] searchArea = GeometryUtilities.getScaledSearchArea(shape, regionDivisor);
         Rectangle2D boundingBox = GeometryUtilities.createBoundingBox(searchArea);
         for(int x = (int)boundingBox.getMinX(); x < boundingBox.getMaxX(); x++){
             for(int y = (int)boundingBox.getMinY(); y < boundingBox.getMaxY(); y++){
                 if (GeometryUtilities.isInsideSearchArea(new Point2D(x, y), searchArea)){
-                    if (searchSpace[x][y].size() == 0){
-                        searchSpace[x][y].add(event);
+                    if (searchSpace[x][y][event.getType().getValue()].size() == 0){
+                        searchSpace[x][y][event.getType().getValue()].add(event);
                     } else {
-                        for (int i = 0; i < searchSpace[x][y].size(); i++){
-                            if (!event.isBefore((IEvent)searchSpace[x][y].get(i)) == false){
-                                searchSpace[x][y].add(i, event);
+                        for (int i = 0; i < searchSpace[x][y][event.getType().getValue()].size(); i++){
+                            if (!event.isBefore((IEvent)searchSpace[x][y][event.getType().getValue()].get(i)) == false){
+                                searchSpace[x][y][event.getType().getValue()].add(i, event);
                             }
                         }
                     }
