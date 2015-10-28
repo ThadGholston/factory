@@ -2,7 +2,7 @@ package tests.indexes;
 
 import edu.gsu.dmlab.datatypes.interfaces.ITrack;
 import edu.gsu.dmlab.geometry.Point2D;
-import edu.gsu.dmlab.indexes.interfaces.ITrackIndexer;
+
 import org.joda.time.DateTime;
 
 import java.util.ArrayList;
