@@ -13,6 +13,7 @@ package edu.gsu.dmlab.datatypes.interfaces;
 
 import org.joda.time.Interval;
 
+import java.util.Comparator;
 import java.util.UUID;
 
 public interface IBaseDataType {
@@ -36,5 +37,14 @@ public interface IBaseDataType {
 	boolean isAfter(IBaseDataType obj);
 
 	UUID getUUID();
+	
+	public static Comparator<IBaseDataType> baseComparator = new Comparator<IBaseDataType>(){
+
+		@Override
+		public int compare(IBaseDataType o1, IBaseDataType o2) {
+			return o1.compareTime(o2);
+		}
+		
+	};
 
 }
