@@ -15,9 +15,5 @@ public class SuccessiveShortestPaths {
         return 0;
     }
 
-    public int[] getCapacity() {
-        // return capacity;
-        //TODO: implement this
-        return new int[0];
-    }
+   
 }
