@@ -1,24 +1,25 @@
-/**
- * 
- */
+
 package tests.indexes;
 
 import static org.junit.Assert.*;
 
 import org.junit.Test;
 
-
 import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
 import java.util.UUID;
+
 import org.joda.time.Interval;
+
 import edu.gsu.dmlab.datatypes.interfaces.IBaseDataType;
 import edu.gsu.dmlab.geometry.Rectangle2D;
 import edu.gsu.dmlab.indexes.interfaces.AbsMatIndexer;
 
 /**
- * @author dustin
+ *
+ * @author Dustin Kempton
+ * 
  *
  */
 
@@ -26,8 +27,8 @@ public class AbsMatIndexerTests {
 	
 	protected class FakeAbsMatIndexer extends AbsMatIndexer<IBaseDataType>{
 
-		public FakeAbsMatIndexer(ArrayList<IBaseDataType> objectList, int regionDimension) throws IllegalArgumentException {
-			super(objectList, regionDimension);
+		public FakeAbsMatIndexer(ArrayList<IBaseDataType> objectList, int regionDimension, int regionDiv) throws IllegalArgumentException {
+			super(objectList, regionDimension, regionDiv);
 			
 		}
 
@@ -54,14 +55,24 @@ public class AbsMatIndexerTests {
 	
 	@Test(expected = IllegalArgumentException.class)
 	public void testConstructorThrowsOnNullList() throws IllegalArgumentException {
-		AbsMatIndexer<IBaseDataType> idxr = new FakeAbsMatIndexer(null, 1);
+		@SuppressWarnings("unused")
+		AbsMatIndexer<IBaseDataType> idxr = new FakeAbsMatIndexer(null, 1,1);
 	}
 	
 	@Test(expected = IllegalArgumentException.class)
 	public void testConstructorThrowsOnDimLessThanOne() throws IllegalArgumentException {
 		@SuppressWarnings("unchecked")
 		ArrayList<IBaseDataType> lst = (ArrayList<IBaseDataType>)mock(ArrayList.class);
-		AbsMatIndexer<IBaseDataType> idxr = new FakeAbsMatIndexer(lst, 0);
+		@SuppressWarnings("unused")
+		AbsMatIndexer<IBaseDataType> idxr = new FakeAbsMatIndexer(lst, 0,1);
+	}
+	
+	@Test(expected = IllegalArgumentException.class)
+	public void testConstructorThrowsOnDivLessThanOne() throws IllegalArgumentException {
+		@SuppressWarnings("unchecked")
+		ArrayList<IBaseDataType> lst = (ArrayList<IBaseDataType>)mock(ArrayList.class);
+		@SuppressWarnings("unused")
+		AbsMatIndexer<IBaseDataType> idxr = new FakeAbsMatIndexer(lst, 1,0);
 	}
 	
 	@Test
@@ -69,7 +80,7 @@ public class AbsMatIndexerTests {
 		@SuppressWarnings("unchecked")
 		ArrayList<IBaseDataType> lst = (ArrayList<IBaseDataType>)mock(ArrayList.class);
 		
-		AbsMatIndexer<IBaseDataType> idxr = new FakeAbsMatIndexer(lst, 1);
+		AbsMatIndexer<IBaseDataType> idxr = new FakeAbsMatIndexer(lst, 1,1);
 		
 		IBaseDataType obj = mock(IBaseDataType.class);
 		when(lst.get(0)).thenReturn(obj);
@@ -86,7 +97,7 @@ public class AbsMatIndexerTests {
 		@SuppressWarnings("unchecked")
 		ArrayList<IBaseDataType> lst = (ArrayList<IBaseDataType>)mock(ArrayList.class);
 		
-		AbsMatIndexer<IBaseDataType> idxr = new FakeAbsMatIndexer(lst, 1);
+		AbsMatIndexer<IBaseDataType> idxr = new FakeAbsMatIndexer(lst, 1,1);
 		
 		IBaseDataType obj = mock(IBaseDataType.class);
 		when(lst.get(0)).thenReturn(obj);
@@ -105,17 +116,16 @@ public class AbsMatIndexerTests {
 		@SuppressWarnings("unchecked")
 		ArrayList<IBaseDataType> lst = (ArrayList<IBaseDataType>)mock(ArrayList.class);
 		
-		AbsMatIndexer<IBaseDataType> idxr = new FakeAbsMatIndexer(lst, 1);	
+		AbsMatIndexer<IBaseDataType> idxr = new FakeAbsMatIndexer(lst, 1,1);	
 		assertEquals(lst, idxr.getAll());
 		
 	}
 	
 	@Test
-	public void testFilterOnIntervalAndLocationRetunsWhenIntersects() throws IllegalArgumentException {
-		@SuppressWarnings("unchecked")
+	public void testFilterOnIntervalAndLocationReturnWhenIntersects() throws IllegalArgumentException {
 		ArrayList<IBaseDataType> lst = new ArrayList<IBaseDataType>();
 		
-		FakeAbsMatIndexer idxr = new FakeAbsMatIndexer(lst, 4);
+		FakeAbsMatIndexer idxr = new FakeAbsMatIndexer(lst, 4,1);
 		
 		IBaseDataType obj = mock(IBaseDataType.class);
 		when(obj.getUUID()).thenReturn(new UUID(4,2));
@@ -125,6 +135,7 @@ public class AbsMatIndexerTests {
 		
 		Rectangle2D rect = new Rectangle2D(1,1,2,2);
 		
+		//adds to index so we can get it back out
 		idxr.setSearchSpace(rect, obj);
 		
 		
@@ -134,11 +145,10 @@ public class AbsMatIndexerTests {
 	}
 	
 	@Test
-	public void testFilterOnIntervalAndLocationDoesNotRetunsWhenNotIntersectingSpatial() throws IllegalArgumentException {
-		@SuppressWarnings("unchecked")
+	public void testFilterOnIntervalAndLocationDoesNotReturnWhenNotIntersectingSpatial() throws IllegalArgumentException {
 		ArrayList<IBaseDataType> lst = new ArrayList<IBaseDataType>();
 		
-		FakeAbsMatIndexer idxr = new FakeAbsMatIndexer(lst, 4);
+		FakeAbsMatIndexer idxr = new FakeAbsMatIndexer(lst, 4,1);
 		
 		IBaseDataType obj = mock(IBaseDataType.class);
 		when(obj.getUUID()).thenReturn(new UUID(4,2));
@@ -148,6 +158,7 @@ public class AbsMatIndexerTests {
 		
 		Rectangle2D rect = new Rectangle2D(1,1,2,2);
 		
+		//adds to index so we can get it back out
 		idxr.setSearchSpace(rect, obj);
 		
 		Rectangle2D rect2 = new Rectangle2D(3,3,1,1);
@@ -157,11 +168,10 @@ public class AbsMatIndexerTests {
 	}
 	
 	@Test
-	public void testFilterOnIntervalAndLocationDoesNotRetunsWhenNotIntersectingTemporal() throws IllegalArgumentException {
-		@SuppressWarnings("unchecked")
+	public void testFilterOnIntervalAndLocationDoesNotReturnWhenNotIntersectingTemporal() throws IllegalArgumentException {
 		ArrayList<IBaseDataType> lst = new ArrayList<IBaseDataType>();
 		
-		FakeAbsMatIndexer idxr = new FakeAbsMatIndexer(lst, 4);
+		FakeAbsMatIndexer idxr = new FakeAbsMatIndexer(lst, 4,1);
 		
 		IBaseDataType obj = mock(IBaseDataType.class);
 		when(obj.getUUID()).thenReturn(new UUID(4,2));
@@ -171,6 +181,7 @@ public class AbsMatIndexerTests {
 		
 		Rectangle2D rect = new Rectangle2D(1,1,2,2);
 		
+		//adds to index so we can get it back out
 		idxr.setSearchSpace(rect, obj);
 		
 		Interval itvl2 = new Interval (600, 700);
