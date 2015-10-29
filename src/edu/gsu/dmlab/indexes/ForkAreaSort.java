@@ -26,7 +26,19 @@ public class ForkAreaSort extends RecursiveAction {
 
 	public ForkAreaSort(ArrayList<IBaseDataType>[][] area, int startX,
 			int startY, int size) {
+		if (area == null)
+			throw new IllegalArgumentException("Area cannot be null.");
+		if (size < 1)
+			throw new IllegalArgumentException("Size cannot be less than 1.");
+		if (startX < 0)
+			throw new IllegalArgumentException("Start X cannot be less than 0.");
+		if (startY < 0)
+			throw new IllegalArgumentException("Start Y cannot be less than 0.");
 
+		this.startX = startX;
+		this.startY = startY;
+		this.size = size;
+		this.area = area;	
 	}
 
 	/*
@@ -55,6 +67,7 @@ public class ForkAreaSort extends RecursiveAction {
 				if ((x < this.area.length) && (y < this.area[x].length))
 					Collections.sort(this.area[x][y],
 							IBaseDataType.baseComparator);
+				
 			}
 		}
 	}

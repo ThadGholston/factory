@@ -3,24 +3,21 @@ package edu.gsu.dmlab.indexes;
 import edu.gsu.dmlab.factory.interfaces.IIndexFactory;
 import edu.gsu.dmlab.geometry.GeometryUtilities;
 import edu.gsu.dmlab.geometry.Point2D;
-import edu.gsu.dmlab.datatypes.interfaces.IBaseDataType;
 import edu.gsu.dmlab.datatypes.interfaces.IEvent;
 import edu.gsu.dmlab.geometry.Rectangle2D;
 import edu.gsu.dmlab.indexes.interfaces.AbsMatIndexer;
 import edu.gsu.dmlab.indexes.interfaces.IEventIndexer;
 
-import org.apache.commons.configuration.ConfigurationException;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.joda.time.Interval;
-import org.joda.time.Seconds;
 
 import java.util.*;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveAction;
 
 /**
- * Created by thad on 10/11/15. Edited by Dustin Kempton on 10/27/15
+ * Created by thad on 10/11/15. Edited by Dustin Kempton on 10/28/15
  */
 public class BasicEventIndexer extends AbsMatIndexer<IEvent> implements
 		IEventIndexer {
