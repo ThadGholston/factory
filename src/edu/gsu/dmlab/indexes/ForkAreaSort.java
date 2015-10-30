@@ -20,16 +20,19 @@ public class ForkAreaSort extends RecursiveAction {
 
 	private int startX;
 	private int startY;
-	private int size;
+	private int sizeX;
+	private int sizeY;
 	private ArrayList<IBaseDataType>[][] area;
 	protected static int sizeThreshold = 5;
 
 	public ForkAreaSort(ArrayList<IBaseDataType>[][] area, int startX,
-			int startY, int size) {
+			int startY, int sizeX, int sizeY) {
 		if (area == null)
 			throw new IllegalArgumentException("Area cannot be null.");
-		if (size < 1)
-			throw new IllegalArgumentException("Size cannot be less than 1.");
+		if (sizeX < 1)
+			throw new IllegalArgumentException("SizeX cannot be less than 1.");
+		if (sizeY < 1)
+			throw new IllegalArgumentException("SizeY cannot be less than 1.");
 		if (startX < 0)
 			throw new IllegalArgumentException("Start X cannot be less than 0.");
 		if (startY < 0)
@@ -37,8 +40,9 @@ public class ForkAreaSort extends RecursiveAction {
 
 		this.startX = startX;
 		this.startY = startY;
-		this.size = size;
-		this.area = area;	
+		this.sizeX = sizeX;
+		this.sizeY = sizeY;
+		this.area = area;
 	}
 
 	/*
@@ -49,25 +53,40 @@ public class ForkAreaSort extends RecursiveAction {
 	@SuppressWarnings("static-access")
 	@Override
 	protected void compute() {
-		if (this.size < sizeThreshold) {
+		if (this.sizeX < sizeThreshold || this.sizeY < sizeThreshold) {
 			this.computeDirectly();
 			return;
 		}
 
-		int split = this.size / 2;
+		int splitX = this.sizeX / 2;
+		int splitY = this.sizeY / 2;
+		int minusSplitX = this.sizeX - splitX;
+		int minusSplitY = this.sizeY - splitY;
 
-		this.invokeAll(new ForkAreaSort(this.area, this.startX, this.startY,
-				split), new ForkAreaSort(this.area, this.startX + split,
-				this.startY + split, this.size - split));
+		this.invokeAll(
+		// Do quadrant 2
+				new ForkAreaSort(this.area, this.startX, this.startY, splitX,
+						splitY),
+				// Do quadrant 1
+				new ForkAreaSort(this.area, this.startX + splitX, this.startY,
+						minusSplitX, splitY),
+				// Do quadrant 3
+				new ForkAreaSort(this.area, this.startX, this.startY + splitY,
+						splitX, minusSplitY),
+				// Do quadrant 4
+				new ForkAreaSort(this.area, this.startX + splitX, this.startY
+						+ splitY, minusSplitX, minusSplitY));
 	}
 
 	protected void computeDirectly() {
-		for (int x = startX; x < startX + size; x++) {
-			for (int y = startY; y < startX + size; y++) {
-				if ((x < this.area.length) && (y < this.area[x].length))
+		int xStop = startX + sizeX;
+		int yStop = startY + sizeY;
+		for (int x = startX; x < xStop; x++) {
+			for (int y = startY; y < yStop; y++) {
+				if ((y < this.area.length) && (x < this.area[y].length))
 					Collections.sort(this.area[x][y],
 							IBaseDataType.baseComparator);
-				
+
 			}
 		}
 	}
