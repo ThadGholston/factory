@@ -1,6 +1,6 @@
 package edu.gsu.dmlab.indexes;
 
-
+import edu.gsu.dmlab.factory.interfaces.IIndexFactory;
 import edu.gsu.dmlab.geometry.GeometryUtilities;
 import edu.gsu.dmlab.geometry.Point2D;
 import edu.gsu.dmlab.datatypes.interfaces.IEvent;
@@ -8,156 +8,212 @@ import edu.gsu.dmlab.geometry.Rectangle2D;
 import edu.gsu.dmlab.indexes.interfaces.AbsMatIndexer;
 import edu.gsu.dmlab.indexes.interfaces.IEventIndexer;
 
-
-import org.apache.commons.configuration.ConfigurationException;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.joda.time.Interval;
-import org.joda.time.Seconds;
 
 import java.util.*;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.RecursiveAction;
 
 /**
- * Created by thad on 10/11/15.
- * Edited by Dustin Kempton on 10/27/15
+ * Created by thad on 10/11/15. Edited by Dustin Kempton on 10/28/15
  */
-public class BasicEventIndexer extends AbsMatIndexer<IEvent>   implements IEventIndexer{
-    Duration frameSpan;
-    Interval globalTimePeriod;
-    HashMap<Long, ArrayList<IEvent>> frames;
-    
-    public BasicEventIndexer(ArrayList<IEvent> regionalList, int regionDimension) throws ConfigurationException {
-        super(regionalList, regionDimension);
-        frameSpan = new Duration(0,1); //TODO: Get real frame interval
-        globalTimePeriod = new Interval(0, 1); // TODO: Get real duration
-        this.buildIndex();
-    }
+public class BasicEventIndexer extends AbsMatIndexer<IEvent> implements
+		IEventIndexer {
+	Duration frameSpan;
+	Interval globalTimePeriod;
+	IIndexFactory factory;
 
-    @Override
-    protected void buildIndex(){
-        objectList.parallelStream().forEach(event -> indexEvent((IEvent) event));
-    }
+	HashMap<Integer, ArrayList<IEvent>> frames = new HashMap<Integer, ArrayList<IEvent>>();
 
-    @Override
-    public ArrayList<IEvent> filterOnInterval( Interval timePeriod) {
-        HashMap<UUID, IEvent> results = new HashMap<>();
-        if(!this.globalTimePeriod.overlaps(timePeriod)){
-            return (ArrayList<IEvent>)results.values();
-        }
-        Interval intersection = this.globalTimePeriod.overlap(timePeriod);
-        ArrayList<Long> periodIndexes = getFrameIndex(intersection);
-        for(Long index: periodIndexes){
-            for(IEvent event: this.frames.getOrDefault(index, new ArrayList<>())){
-                if (event.getTimePeriod().overlaps(intersection)) {
-                    results.put(event.getUUID(), event);
-                }
-            }
-        }
-        return (ArrayList<IEvent>)results.values();
-    }
+	public BasicEventIndexer(ArrayList<IEvent> regionalList,
+			int regionDimension, int regionDiv, Duration frameSpan,
+			IIndexFactory factory) throws IllegalArgumentException {
 
-    private void indexEvent(IEvent event){
-        insertEventIntoSearchSpace(event);
-        resizeGlobalPeriod(event.getTimePeriod());
-        buildFrameIndex(event);
-    }
+		super(regionalList, regionDimension, regionDiv);
 
+		if (frameSpan == null)
+			throw new IllegalArgumentException("FrameSpan cannot be null");
+		if (factory == null)
+			throw new IllegalArgumentException("IIndexFactory cannot be null");
 
-	private void insertEventIntoSearchSpace(IEvent event){
-        Point2D[] shape = event.getShape();
-        Point2D[] searchArea = GeometryUtilities.getScaledSearchArea(shape, regionDivisor);
-        Rectangle2D boundingBox = GeometryUtilities.createBoundingBox(searchArea);
-        for(int x = (int)boundingBox.getMinX(); x < boundingBox.getMaxX(); x++){
-            for(int y = (int)boundingBox.getMinY(); y < boundingBox.getMaxY(); y++){
-                if (GeometryUtilities.isInsideSearchArea(new Point2D(x, y), searchArea)){
-                    if (searchSpace[x][y].size() == 0){
-                        searchSpace[x][y].add(event);
-                    } else {
-                        for (int i = 0; i < searchSpace[x][y].size(); i++){
-                            if (!event.isBefore((IEvent)searchSpace[x][y].get(i)) == false){
-                                searchSpace[x][y].add(i, event);
-                            }
-                        }
-                    }
+		if (frameSpan.getStandardSeconds() < 1)
+			throw new IllegalArgumentException(
+					"FrameSpan cannot be a duration less than 1");
 
-                }
-            }
-        }
-    }
+		this.frameSpan = frameSpan;
+		this.globalTimePeriod = null; // the build index should
+										// expand this as events are
+										// indexed.
+		this.factory = factory;
+		this.buildIndex();
+	}
 
-    private void buildFrameIndex(IEvent event){
-        Interval timePeriod = event.getTimePeriod();
-        resizeGlobalPeriod(timePeriod);
-        ArrayList<Long> indexes = getFrameIndex(timePeriod);
-        for (Long index: indexes){
-            ArrayList<IEvent> frame = frames.getOrDefault(index, new ArrayList<>());
-            frame.add(event);
-            this.frames.put(index, frame);
-        }
-    }
+	@Override
+	protected void buildIndex() {
 
-    private void resizeGlobalPeriod(Interval timePeriod){
-        //TODO: Resize globalTimePeriod
-        if (this.globalTimePeriod == null){
-            long length = Seconds.secondsIn(timePeriod).getSeconds()/ this.frameSpan.getStandardSeconds();
-            DateTime end = timePeriod.getStart().plus(this.frameSpan.getStandardSeconds() * length + this.frameSpan.getStandardSeconds());
-            this.globalTimePeriod = new Interval(timePeriod.getStart(), end);
-        } else {
-            this.globalTimePeriod = union(this.globalTimePeriod, timePeriod);
-        }
-    }
+		// add all the objects to the index
+		objectList.parallelStream()
+				.forEach(event -> indexEvent((IEvent) event));
 
-    private ArrayList<Long> getFrameIndex(Interval timePeriod){
-        ArrayList<Long> indexes = new ArrayList<>();
-        Duration difference = new Duration(timePeriod.overlap(this.globalTimePeriod));
-        long beginningIndex = difference.getStandardSeconds() / this.frameSpan.getStandardSeconds() + 1;
-        long endingIndex = beginningIndex + new Duration(timePeriod).getStandardSeconds() + this.frameSpan.getStandardSeconds();
-        for (long index = beginningIndex; index <= endingIndex; index++){
-            Duration durationAfterIndexStart = new Duration(this.frameSpan.getStandardSeconds() * index);
-            Interval indexPeriod = new Interval(this.globalTimePeriod.getStart().plus(durationAfterIndexStart), this.globalTimePeriod.getStart().plus(durationAfterIndexStart.getStandardSeconds() + this.frameSpan.getStandardSeconds()));
-            if (timePeriod.overlaps(indexPeriod)){
-                indexes.add(index);
-            }
-        }
-        return indexes;
-    }
+		// Sort all of the array lists in the search area matrix
+		RecursiveAction fs = this.factory.getBaseObjectAreaSort(
+				this.searchSpace, 0, 0, this.searchSpace.length);
+		ForkJoinPool pool = new ForkJoinPool();
+		pool.invoke(fs);
+	}
 
+	@Override
+	public ArrayList<IEvent> filterOnInterval(Interval timePeriod) {
+		HashMap<UUID, IEvent> results = new HashMap<>();
+		
+		//if the query time actually overlaps then do it
+		if (this.globalTimePeriod.overlaps(timePeriod)) {
 
-    private Interval union( Interval firstInterval, Interval secondInterval )
-    {
-        // Purpose: Produce a new Interval instance from the outer limits of any pair of Intervals.
+			Interval intersection = this.globalTimePeriod.overlap(timePeriod);
+			ArrayList<Integer> periodIndexes = getFrameIndex(intersection);
+			for (Integer index : periodIndexes) {
+				for (IEvent event : this.frames.getOrDefault(index,
+						new ArrayList<>())) {
+					if (event.getTimePeriod().overlaps(intersection)) {
+						results.put(event.getUUID(), event);
+					}
+				}
+			}
+		}
+		
+		//return the values
+		Collection<IEvent> coll = results.values();
+		ArrayList<IEvent> list = new ArrayList<IEvent>();
+		list.addAll(0, coll);
+		return (ArrayList<IEvent>) list;
+	}
 
-        // Take the earliest of both starting date-times.
-        DateTime start =  firstInterval.getStart().isBefore( secondInterval.getStart() )  ? firstInterval.getStart() : secondInterval.getStart();
-        // Take the latest of both ending date-times.
-        DateTime end =  firstInterval.getEnd().isAfter( secondInterval.getEnd() )  ? firstInterval.getEnd() : secondInterval.getEnd();
-        // Instantiate a new Interval from the pair of DateTime instances.
-        Interval unionInterval = new Interval( start, end );
+	private void indexEvent(IEvent event) {
+		insertEventIntoSearchSpace(event);
+		resizeGlobalPeriod(event.getTimePeriod());
+		buildFrameIndex(event);
+	}
 
-        return unionInterval;
-    }
+	private void insertEventIntoSearchSpace(IEvent event) {
+		Point2D[] shape = event.getShape();
+		Point2D[] searchArea = GeometryUtilities.getScaledSearchArea(shape,
+				regionDivisor);
+		Rectangle2D boundingBox = GeometryUtilities
+				.createBoundingBox(searchArea);
+		for (int x = (int) boundingBox.getMinX(); x < boundingBox.getMaxX(); x++) {
+			for (int y = (int) boundingBox.getMinY(); y < boundingBox.getMaxY(); y++) {
+				if (GeometryUtilities.isInsideSearchArea(new Point2D(x, y),
+						searchArea)) {
+					searchSpace[x][y].add(event);
+				}
+			}
+		}
+	}
 
-    @Override
-    public int getExpectedChangePerFrame(Interval timePeriod) {
-        if (timePeriod.getEnd().isBefore(this.globalTimePeriod.getStart())){
-            return 0;
-        }else if (timePeriod.getStart().isAfter(this.globalTimePeriod.getEnd())) {
-            return 0;
-        }
-        Interval intersection = this.globalTimePeriod.overlap(timePeriod);
-        ArrayList<Long> periodIndexes = getFrameIndex(intersection);
-        double sum = 0.0;
-        if (periodIndexes.size() > 1){
-            ArrayList<IEvent> events = this.frames.getOrDefault(0, new ArrayList<>());
-            double lastValue = events.size();
-            for (int i = 0; i < periodIndexes.size(); i++){
-                events= this.frames.getOrDefault(i, new ArrayList<>());
-                double currentValue = events.size();
-                sum += Math.abs(currentValue - lastValue);
-                lastValue = currentValue;
-            }
-        }
-        return (int) sum / periodIndexes.size();
-    }
+	private void buildFrameIndex(IEvent event) {
+		Interval timePeriod = event.getTimePeriod();
+		this.resizeGlobalPeriod(timePeriod);
+		ArrayList<Integer> indexes = getFrameIndex(timePeriod);
+		for (int index : indexes) {
+			ArrayList<IEvent> frame = frames.getOrDefault(index, null);
+			if (frame != null) {
+				frame.add(event);
+			} else {
+				frame = new ArrayList<IEvent>();
+				frame.add(event);
+				this.frames.put(index, frame);
+			}
+		}
+	}
+
+	private void resizeGlobalPeriod(Interval timePeriod) {
+
+		if (this.globalTimePeriod == null) {
+			long length = timePeriod.toDurationMillis()
+					/ this.frameSpan.getMillis() + 1;
+			DateTime end = timePeriod.getStart().plus(
+					this.frameSpan.getMillis() * length);
+			this.globalTimePeriod = new Interval(timePeriod.getStart(), end);
+		} else {
+			this.globalTimePeriod = union(this.globalTimePeriod, timePeriod);
+		}
+	}
+
+	/***
+	 * This method assumes that the input interval is within the global time
+	 * period. Make sure to expand the global interval if this is not the case,
+	 * or trim the input timePeriod prior to calling.
+	 * 
+	 * @param timePeriod
+	 *            the time period we wish to get valid index locations for
+	 * @return the set of index locations the input period intersects
+	 */
+	private ArrayList<Integer> getFrameIndex(Interval timePeriod) {
+
+		// find the beginning index location
+		long beginningIndex = (this.globalTimePeriod.getStartMillis() - timePeriod
+				.getStartMillis()) / this.frameSpan.getMillis();
+
+		long numIdPositions = (timePeriod.toDurationMillis() / this.frameSpan
+				.getMillis());
+
+		if (timePeriod.toDurationMillis() % this.frameSpan.getMillis() != 0) {
+			numIdPositions += 1;
+		}
+
+		// find the ending index location
+		long endingIndex = beginningIndex + numIdPositions;
+
+		// construct the array of indexes to return
+		ArrayList<Integer> indexes = new ArrayList<>();
+		for (long index = beginningIndex; index <= endingIndex; index++) {
+			indexes.add((int) index);
+		}
+		return indexes;
+	}
+
+	private Interval union(Interval firstInterval, Interval secondInterval) {
+		// Purpose: Produce a new Interval instance from the outer limits of any
+		// pair of Intervals.
+
+		// Take the earliest of both starting date-times.
+		DateTime start = firstInterval.getStart().isBefore(
+				secondInterval.getStart()) ? firstInterval.getStart()
+				: secondInterval.getStart();
+		// Take the latest of both ending date-times.
+		DateTime end = firstInterval.getEnd().isAfter(secondInterval.getEnd()) ? firstInterval
+				.getEnd() : secondInterval.getEnd();
+		// Instantiate a new Interval from the pair of DateTime instances.
+		Interval unionInterval = new Interval(start, end);
+
+		return unionInterval;
+	}
+
+	@Override
+	public int getExpectedChangePerFrame(Interval timePeriod) {
+		if (timePeriod.getEnd().isBefore(this.globalTimePeriod.getStart())) {
+			return 0;
+		} else if (timePeriod.getStart()
+				.isAfter(this.globalTimePeriod.getEnd())) {
+			return 0;
+		}
+		Interval intersection = this.globalTimePeriod.overlap(timePeriod);
+		ArrayList<Integer> periodIndexes = getFrameIndex(intersection);
+		double sum = 0.0;
+		if (periodIndexes.size() > 1) {
+			ArrayList<IEvent> events = this.frames.getOrDefault(0,
+					new ArrayList<>());
+			double lastValue = events.size();
+			for (int i = 0; i < periodIndexes.size(); i++) {
+				events = this.frames.getOrDefault(i, new ArrayList<>());
+				double currentValue = events.size();
+				sum += Math.abs(currentValue - lastValue);
+				lastValue = currentValue;
+			}
+		}
+		return (int) sum / periodIndexes.size();
+	}
 
 }
