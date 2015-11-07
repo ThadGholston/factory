@@ -16,35 +16,27 @@ import java.awt.geom.Point2D;
 public class StageThree extends BaseUpperStage {
 
     private int maxFrameSkip;
-    public StageThree(ITrackIndexer trackIndexer, IEventIndexer eventIndexer, IPositionPredictor positionPredictor, Configuration configuration, int maxFrameSkip){
-        super(trackIndexer, positionPredictor, configuration, maxFrameSkip);
+
+    public StageThree(IPositionPredictor predictor, IEventIndexer evntsIdxr, ITrackIndexer tracksIdxr,
+                      int timeSpan, int numSpan, int maxFrameSkip, double sameMean, double sameStdDev, double diffMean,
+                      double diffStdDev, double[] histRanges, double[] params, double[][][] pValues) {
+        super(predictor, evntsIdxr, tracksIdxr,
+                timeSpan, numSpan, maxFrameSkip, sameMean, sameStdDev, diffMean,
+                diffStdDev, histRanges, params, pValues);
     }
 
-    double prob(ITrack leftTrack, ITrack rightTrack) {
+    protected double prob(ITrack leftTrack, ITrack rightTrack) {
         double p = 1;
-
-//        #pragma omp parallel sections reduction(*:p)
-//        {
-//            #pragma omp section
-//            {
-                p = this.PAppearance(leftTrack, rightTrack);
-//            }
-//            #pragma omp section
-//            {
-                p = this.PFrameGap(leftTrack, rightTrack);
-//            }
-//            #pragma omp section
-//            {
-                p = this.PMotionModel(leftTrack, rightTrack);
-//            }
-//        }
+        p *= this.PAppearance(leftTrack, rightTrack);
+        p *= this.PFrameGap(leftTrack, rightTrack);
+        p *= this.PMotionModel(leftTrack, rightTrack);
 
         return p;
     }
 
     double PMotionModel(ITrack leftTrack, ITrack rightTrack) {
-        double []leftMotion = trackNormalizedMeanMovement(leftTrack);
-        double []rightMotion = trackNormalizedMeanMovement(rightTrack);
+        double[] leftMotion = trackNormalizedMeanMovement(leftTrack);
+        double[] rightMotion = trackNormalizedMeanMovement(rightTrack);
 
         double xdiff = leftMotion[0] - rightMotion[0];
         double ydiff = leftMotion[1] - rightMotion[1];
@@ -59,7 +51,7 @@ public class StageThree extends BaseUpperStage {
         double xMovement = 0.0;
         double yMovement = 0.0;
         IEvent event = track.getFirst();
-        for(IEvent currentEvent: track){
+        for (IEvent currentEvent : track) {
             Point2D.Double currentlocation = currentEvent.getLocation();
             Point2D.Double firstLocation = event.getLocation();
             xMovement += currentlocation.getX() - firstLocation.getX();
@@ -67,7 +59,7 @@ public class StageThree extends BaseUpperStage {
             event = currentEvent;
         }
 
-        double [] motionNormMean = new double[2];
+        double[] motionNormMean = new double[2];
 
         if (track.size() > 0) {
             //average the movement

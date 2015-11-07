@@ -22,88 +22,88 @@ import java.util.stream.IntStream;
  * Created by thad on 10/11/15.
  */
 public class BasicTrackIndexer extends AbsMatIndexer<ITrack> implements
-		ITrackIndexer {
-	IIndexFactory factory;
+        ITrackIndexer {
+    IIndexFactory factory;
 
-	public BasicTrackIndexer(ArrayList<ITrack> list, int regionDimension,
-			int regionDiv, IIndexFactory factory)
-			throws IllegalArgumentException {
-		super(list, regionDimension, regionDiv);
+    public BasicTrackIndexer(ArrayList<ITrack> list, int regionDimension,
+                             int regionDiv, IIndexFactory factory)
+            throws IllegalArgumentException {
+        super(list, regionDimension, regionDiv);
 
-		if (factory == null)
-			throw new IllegalArgumentException("Factory cannot be null.");
-		this.factory = factory;
-	}
+        if (factory == null)
+            throw new IllegalArgumentException("Factory cannot be null.");
+        this.factory = factory;
+    }
 
-	protected void buildIndex() {
-		objectList.parallelStream().forEach(track -> {
-			indexTrack((ITrack) track);
-		});
-	}
+    protected void buildIndex() {
+        objectList.parallelStream().forEach(track -> {
+            indexTrack(track);
+        });
+    }
 
-	private void indexTrack(ITrack track) {
-		if (track.getType() == EventType.SIGMOID) {
-			pushSGTrackIntoMatrix(track);
-		} else {
-			pushTrackIntoMatrix(track);
-		}
-	}
+    private void indexTrack(ITrack track) {
+        if (track.getType() == EventType.SIGMOID) {
+            pushSGTrackIntoMatrix(track);
+        } else {
+            pushTrackIntoMatrix(track);
+        }
+    }
 
-	private void pushSGTrackIntoMatrix(ITrack track) {
-		Rectangle2D boxFromFirstEvent = track.getFirst().getBBox();
-		Rectangle2D beginSearchBox = GeometryUtilities.getScaledBoundingBox(
-				boxFromFirstEvent, regionDivisor);
+    private void pushSGTrackIntoMatrix(ITrack track) {
+        Rectangle2D boxFromFirstEvent = track.getFirst().getBBox();
+//		Rectangle2D beginSearchBox = GeometryUtilities.getScaledBoundingBox(
+//				boxFromFirstEvent, regionDivisor);
 
-		Rectangle2D boxFromLastEvent = track.getLast().getBBox();
-		Rectangle2D endSearchBox = GeometryUtilities.getScaledBoundingBox(
-				boxFromLastEvent, regionDivisor);
+        Rectangle2D boxFromLastEvent = track.getLast().getBBox();
+        Rectangle2D endSearchBox = GeometryUtilities.getScaledBoundingBox(
+                boxFromLastEvent, regionDivisor);
 
-		Arrays.asList(new Rectangle2D[] { boxFromFirstEvent, endSearchBox })
-				.parallelStream().forEach(boundingBox -> {
-					if (boxFromFirstEvent.equals(boundingBox)) {
-						popStartRecArea(boundingBox, track);
-					}
-				});
-	}
+        Arrays.asList(new Rectangle2D[]{boxFromFirstEvent, endSearchBox})
+                .parallelStream().forEach(boundingBox -> {
+            if (boxFromFirstEvent.equals(boundingBox)) {
+                popStartRecArea(boundingBox, track);
+            }
+        });
+    }
 
-	private void popStartRecArea(Rectangle2D boundingBox, ITrack track) {
-		IntStream
-				.rangeClosed((int) boundingBox.getMinX(),
-						(int) boundingBox.getMaxX())
-				.parallel()
-				.forEach(
-						x -> {
-							IntStream
-									.rangeClosed((int) boundingBox.getMinY(),
-											(int) boundingBox.getMaxY())
-									.parallel().forEach(y -> {
-										searchSpace[x][y].add(track);
-									});
-						});
-	}
+    private void popStartRecArea(Rectangle2D boundingBox, ITrack track) {
+        IntStream
+                .rangeClosed((int) boundingBox.getMinX(),
+                        (int) boundingBox.getMaxX())
+                .parallel()
+                .forEach(
+                        x -> {
+                            IntStream
+                                    .rangeClosed((int) boundingBox.getMinY(),
+                                            (int) boundingBox.getMaxY())
+                                    .parallel().forEach(y -> {
+                                searchSpace[x][y].add(track);
+                            });
+                        });
+    }
 
-	private void pushTrackIntoMatrix(ITrack track) {
-		Rectangle2D boundingBox = GeometryUtilities.getScaledBoundingBox(track
-				.getFirst().getShape(), regionDivisor);
-		IntStream
-				.rangeClosed((int) boundingBox.getMinX(),
-						(int) boundingBox.getMaxX())
-				.parallel()
-				.forEach(
-						x -> {
-							IntStream
-									.rangeClosed((int) boundingBox.getMinY(),
-											(int) boundingBox.getMaxY())
-									.parallel().forEach(y -> {
-										searchSpace[x][y].add(track);
-									});
-						});
-	}
+    private void pushTrackIntoMatrix(ITrack track) {
+        Rectangle2D boundingBox = GeometryUtilities.getScaledBoundingBox(track
+                .getFirst().getShape(), regionDivisor);
+        IntStream
+                .rangeClosed((int) boundingBox.getMinX(),
+                        (int) boundingBox.getMaxX())
+                .parallel()
+                .forEach(
+                        x -> {
+                            IntStream
+                                    .rangeClosed((int) boundingBox.getMinY(),
+                                            (int) boundingBox.getMaxY())
+                                    .parallel().forEach(y -> {
+                                searchSpace[x][y].add(track);
+                            });
+                        });
+    }
 
-	@Override
-	public ArrayList<ITrack> filterOnInterval(Interval timePeriod) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    @Override
+    public ArrayList<ITrack> filterOnInterval(Interval timePeriod) {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
 }

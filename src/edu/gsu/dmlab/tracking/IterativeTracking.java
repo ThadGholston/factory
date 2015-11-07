@@ -17,36 +17,30 @@ import java.util.ArrayList;
  */
 public class IterativeTracking extends ITracking {
 
-    IEventIndexer eventIndexer;
-    ITrackIndexer trackIndexer;
-    IPositionPredictor positionPredictor;
-    int maxFrameSkip;
 
-    public IterativeTracking(Configuration configuration, ITrackIndexer trackIndexer, IEventIndexer eventIndexer, IPositionPredictor positionPredictor, int maxFrameSkip) {
-        super(configuration);
-        this.eventIndexer = eventIndexer;
-        this.trackIndexer = trackIndexer;
-        this.positionPredictor = positionPredictor;
-        this.maxFrameSkip = maxFrameSkip;
+
+    public IterativeTracking(IPositionPredictor positionPredictor, IEventIndexer eventIndexer, ITrackIndexer trackIndexer,
+                             int timeSpan, double sameMean, double sameStdDev, double diffMean, double diffStdDev,
+                             double[] histRanges, double[] params) {
     }
 
     @Override
     public ArrayList<ITrack> trackEvents() {
 
         //Process stage one
-        StageOne stageOne = new StageOne(eventIndexer, configuration);
+        StageOne stageOne = new StageOne(positionPredictor, eventIndexer);
         ArrayList<ITrack> tracks = stageOne.process();
 
         //Process stage two
-        StageTwo stageTwo = new StageTwo(trackIndexer, eventIndexer, positionPredictor, configuration, maxFrameSkip);
+        StageTwo stageTwo = new StageTwo(positionPredictor, eventIndexer, trackIndexer, timeSpan, sameMean, sameStdDev, diffMean, diffStdDev, histRanges, params);
         tracks = stageTwo.process();
 
         //Process stage three
-        StageThree twoPartStage = new StageThree(trackIndexer, eventIndexer, positionPredictor, configuration, maxFrameSkip);
+        StageThree twoPartStage = new StageThree(positionPredictor, eventIndexer, trackIndexer, timeSpan, sameMean, sameStdDev, diffMean, diffStdDev, histRanges, params);
         tracks = twoPartStage.process();
 
         //Process stage four
-        twoPartStage = new StageThree(trackIndexer, eventIndexer, positionPredictor, configuration, maxFrameSkip);
+        twoPartStage = new StageThree(positionPredictor, eventIndexer, trackIndexer, timeSpan, sameMean, sameStdDev, diffMean, diffStdDev, histRanges, params);
         tracks = twoPartStage.process();
 
         return tracks;

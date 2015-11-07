@@ -13,7 +13,7 @@ public interface IIndexFactory {
 	public IEventIndexer getEventIndexer(ArrayList<IEvent> regionalList);
 	public ITrackIndexer getTrackIndexer(ArrayList<IEvent> regionalList);
 	public RecursiveAction getBaseObjectAreaSort(ArrayList<IBaseDataType>[][] area, int startX,
-			int startY, int size);
+			int startY, int sizeX, int sizeY);
 	
 
 }

@@ -54,8 +54,8 @@ public class IndexFactory implements IIndexFactory {
 	 */
 	@Override
 	public RecursiveAction getBaseObjectAreaSort(
-			ArrayList<IBaseDataType>[][] area, int startX, int startY, int size) {
-		return new ForkAreaSort(area, startX, startY, size);
+			ArrayList<IBaseDataType>[][] area, int startX, int startY, int sizeX, int sizeY) {
+		return new ForkAreaSort(area, startX, startY, sizeX, sizeY);
 	}
 
 }

@@ -19,6 +19,8 @@ import javax.sql.DataSource;
 import edu.gsu.dmlab.databases.ImageDBConnection;
 import edu.gsu.dmlab.databases.TrackingResultFileReader;
 import edu.gsu.dmlab.databases.interfaces.IImageDBConnection;
+import edu.gsu.dmlab.datatypes.Track;
+import edu.gsu.dmlab.datatypes.interfaces.IEvent;
 import edu.gsu.dmlab.datatypes.interfaces.ITrack;
 import edu.gsu.dmlab.exceptions.UnknownEventTypeException;
 import edu.gsu.dmlab.imageproc.HistogramProducer;
@@ -70,5 +72,13 @@ public class ObjectFactory {
 	public static Configuration getConfiguration(String configFile){
 		configuration = new BaseConfiguration();
 		return configuration;
+	}
+
+	public static ITrack getNewTrack(IEvent event){
+		return new Track(event);
+	}
+
+	public static ITrack getNewTrack(ITrack track1, ITrack track2){
+		return new Track(track1, track2);
 	}
 }
