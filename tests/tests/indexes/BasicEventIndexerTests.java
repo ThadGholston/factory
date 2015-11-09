@@ -113,7 +113,7 @@ public class BasicEventIndexerTests {
 		RecursiveAction rs = mock(RecursiveAction.class);
 		when(
 				factory.getBaseObjectAreaSort(any(ArrayList[][].class),
-						anyInt(), anyInt(), anyInt())).thenReturn(rs);
+						anyInt(), anyInt(), anyInt(), anyInt())).thenReturn(rs);
 
 		// add event to index
 		IEvent obj = mock(IEvent.class);
@@ -153,7 +153,7 @@ public class BasicEventIndexerTests {
 		RecursiveAction rs = mock(RecursiveAction.class);
 		when(
 				factory.getBaseObjectAreaSort(any(ArrayList[][].class),
-						anyInt(), anyInt(), anyInt())).thenReturn(rs);
+						anyInt(), anyInt(), anyInt(), anyInt())).thenReturn(rs);
 
 		// add event to index
 		IEvent obj = mock(IEvent.class);
@@ -194,7 +194,7 @@ public class BasicEventIndexerTests {
 		RecursiveAction rs = mock(RecursiveAction.class);
 		when(
 				factory.getBaseObjectAreaSort(any(ArrayList[][].class),
-						anyInt(), anyInt(), anyInt())).thenReturn(rs);
+						anyInt(), anyInt(), anyInt(), anyInt())).thenReturn(rs);
 
 		// add event to index
 		IEvent obj = mock(IEvent.class);
@@ -236,7 +236,7 @@ public class BasicEventIndexerTests {
 		RecursiveAction rs = mock(RecursiveAction.class);
 		when(
 				factory.getBaseObjectAreaSort(any(ArrayList[][].class),
-						anyInt(), anyInt(), anyInt())).thenReturn(rs);
+						anyInt(), anyInt(), anyInt(), anyInt())).thenReturn(rs);
 
 		// add event to index
 		IEvent obj = mock(IEvent.class);
@@ -276,7 +276,7 @@ public class BasicEventIndexerTests {
 		RecursiveAction rs = mock(RecursiveAction.class);
 		when(
 				factory.getBaseObjectAreaSort(any(ArrayList[][].class),
-						anyInt(), anyInt(), anyInt())).thenReturn(rs);
+						anyInt(), anyInt(), anyInt(), anyInt())).thenReturn(rs);
 
 		// add event to index
 		IEvent obj = mock(IEvent.class);

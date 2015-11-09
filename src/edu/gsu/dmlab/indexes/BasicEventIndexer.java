@@ -59,7 +59,7 @@ public class BasicEventIndexer extends AbsMatIndexer<IEvent> implements
 
 		// Sort all of the array lists in the search area matrix
 		RecursiveAction fs = this.factory.getBaseObjectAreaSort(
-				this.searchSpace, 0, 0, this.searchSpace.length);
+				this.searchSpace, 0, 0, this.searchSpace.length, this.searchSpace.length);
 		ForkJoinPool pool = new ForkJoinPool();
 		pool.invoke(fs);
 	}

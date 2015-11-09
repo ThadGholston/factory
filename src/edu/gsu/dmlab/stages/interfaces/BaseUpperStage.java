@@ -1,274 +1,450 @@
 package edu.gsu.dmlab.stages.interfaces;
 
-import edu.gsu.dmlab.geometry.GeometryUtilities;
-import edu.gsu.dmlab.graph.algo.SuccessiveShortestPaths;
-import edu.gsu.dmlab.graph.Edge;
-import edu.gsu.dmlab.geometry.Point2D;
-import edu.gsu.dmlab.geometry.Rectangle2D;
 import edu.gsu.dmlab.datatypes.interfaces.IEvent;
 import edu.gsu.dmlab.datatypes.interfaces.ITrack;
-import edu.gsu.dmlab.indexes.interfaces.IIndexer;
+import edu.gsu.dmlab.geometry.GeometryUtilities;
+import edu.gsu.dmlab.geometry.Point2D;
+import edu.gsu.dmlab.geometry.Rectangle2D;
+import edu.gsu.dmlab.graph.Edge;
+import edu.gsu.dmlab.graph.Graph;
+import edu.gsu.dmlab.graph.algo.SuccessiveShortestPaths;
+import edu.gsu.dmlab.indexes.interfaces.IEventIndexer;
+import edu.gsu.dmlab.indexes.interfaces.ITrackIndexer;
 import edu.gsu.dmlab.util.interfaces.IPositionPredictor;
-import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.math3.special.Erf;
+import org.apache.commons.math3.util.CombinatoricsUtils;
 import org.jgrapht.graph.SimpleDirectedWeightedGraph;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
+import org.joda.time.Seconds;
 import org.opencv.core.Mat;
 import org.opencv.imgproc.Imgproc;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.UUID;
 
 import static org.opencv.core.CvType.CV_32FC;
-import static org.opencv.imgproc.Imgproc.compareHist;
 
-/**
- * Created by thad on 9/23/15.
- */
-public abstract class BaseUpperStage extends Stage {
+public abstract class BaseUpperStage {
+    private
+    HashMap<ITrack, ArrayList<ITrack>> relate;
+    int regionDimension = 64;
+    int regionDivisor = 64;
+
+
+    double secondsToDaysConst = 60.0 * 60.0 * 24.0;
+    ITrackIndexer tracksIdxr;
+    IPositionPredictor predictor;
+    IEventIndexer evntsIdxr;
+
+    protected int timeSpan;
     protected int maxFrameSkip;
     protected double sameMean;
     protected double sameStdDev;
     protected double diffMean;
     protected double diffStdDev;
     protected static final int multFactor = 100;
-    protected int regionDivisor;
-    protected int regionDimension;
     protected double[][][] pValues;
     protected double[] pValMax;
-    protected ArrayList<Integer> params;
+    protected double[] params;
     protected double[] histRanges;
-    //all edges will have a flow of 1
-    protected int edgeCap = 1;
-    //    private HashMap<UUID, Integer> eventMap;
-    // private ArrayList<TrackRelation> trackRelationsList;
+    protected int numSpan;
+    protected int edgeCap = 1; // all edges in graph will have a flow of 1
     protected int countX;
     protected final int secondsToDaysConstant = 60 * 60 & 24;
+    private final double sqrt2Pi = Math.sqrt(2 * Math.PI);
 
-
-    public BaseUpperStage(IPositionPredictor positionPredictor, IIndexer trackIndexer, int maxFrameSkip) throws ConfigurationException {
-        super(positionPredictor, trackIndexer);
-        this.indexer = trackIndexer;
-        this.maxFrameSkip = configuration.getInt("maxFrameSkip");
-        this.sameMean = configuration.getDouble("sameMean");
-        this.sameStdDev = configuration.getDouble("sameStdDev");
-        this.diffMean = configuration.getDouble("diffMean");
-        this.diffStdDev = configuration.getDouble("diffStdDev");
-        this.regionDivisor = configuration.getInt("regionDivisor");
-        this.regionDimension = configuration.getInt("regionDimension");
-//        this.eventMap = new HashMap<UUID, Integer>();
+    public BaseUpperStage(IPositionPredictor predictor, IEventIndexer evntsIdxr, ITrackIndexer tracksIdxr,
+                          int timeSpan, int numSpan, int maxFrameSkip, double sameMean, double sameStdDev, double diffMean,
+                          double diffStdDev, double[] histRanges, double[] params, double[][][] pValues) {
+        this.predictor = predictor;
+        this.evntsIdxr = evntsIdxr;
+        this.tracksIdxr = tracksIdxr;
+        this.maxFrameSkip = maxFrameSkip;
+        this.timeSpan = timeSpan;
+        this.sameMean = sameMean;
+        this.sameStdDev = sameStdDev;
+        this.diffMean = diffMean;
+        this.diffStdDev = diffStdDev;
+        this.numSpan = numSpan;
+        this.histRanges = histRanges;
+        this.params = params;
+        this.pValues = pValues;
+        this.pValMax = pValMax;
         this.countX = 0;
-        // this.histRanges = new double[histRangesVec.size()];
     }
 
-    public ArrayList<ITrack> process() {
+    ArrayList<ITrack> process() {
 
-        ArrayList<ITrack> tracks = this.indexer.getAll();
-        HashMap<UUID, Integer> eventMap = new HashMap<>();
-        //for each track that we got back in the objectList we will find the potential
-        //matches for that track and link it to the one with the highest probability of
-        //being a match.
-        HashMap<ITrack, ArrayList<ITrack>> relations = new HashMap<>();
-        for (ITrack track : tracks) {
-            ArrayList<ITrack> allPotentialTracks = getAllPotentialTracks(track);
+        ArrayList<ITrack> vectOfTracks = this.tracksIdxr.getAll();
 
-            eventMap.put(track.getFirst().getUUID(), countX++);
-            for (ITrack potentialTrack : allPotentialTracks) {
-                eventMap.put(potentialTrack.getFirst().getUUID(), countX++);
+
+        if (vectOfTracks.size() > 0) {
+
+
+            HashMap<UUID, Integer> eventMap = new HashMap<>();
+
+            int countX = 0;
+
+            HashMap<ITrack, ArrayList<ITrack>> trackRelationsList = new HashMap<>();
+
+            //for each track that we got back in the list we will find the potential
+            //matches for that track and link it to the one with the highest probability of
+            //being a match.
+            for (int i = 0; i < vectOfTracks.size(); i++) {
+
+
+                //we get the event associated with the end of our current track as that is
+                //the last frame of the track and has position information and image
+                //information associated with it.
+                ITrack currentTrack = vectOfTracks.get(i);
+                IEvent currentEvent = currentTrack.getLast();
+
+                double span;
+                DateTime startSearch;
+                DateTime endSearch;
+                Point2D[] searchArea;
+                ArrayList<ITrack> potentialTracks;
+
+                int positionOfEvent = currentTrack.indexOf(currentEvent);
+                if (getIndex(currentTrack, positionOfEvent - 1) == null || getIndex(currentTrack, positionOfEvent - 2) == null) {
+                    //get the search area to find tracks that may belong linked to the current one being processed
+                    span = Seconds.secondsIn(currentEvent.getTimePeriod()).getSeconds() / secondsToDaysConst;
+                    //set the time span to search in as the end of our current track+the
+                    //the span of the frame for the last event in our current track being processed.
+                    startSearch = currentEvent.getTimePeriod().getEnd();
+                    endSearch = startSearch.plusSeconds(Seconds.secondsIn(currentEvent.getTimePeriod()).getSeconds());
+                    searchArea = this.predictor.getSearchRegion(currentEvent.getBBox(), span);
+                    Rectangle2D searchBox = GeometryUtilities.createBoundingBox(searchArea);
+                    potentialTracks = this.tracksIdxr.filterOnIntervalAndLocation(new Interval(startSearch, endSearch), searchBox);
+
+                } else {
+
+                    Interval tp = getIndex(currentTrack, positionOfEvent - 1).getTimePeriod();
+                    startSearch = currentEvent.getTimePeriod().getEnd();
+                    endSearch = startSearch.plusSeconds(Seconds.secondsBetween(currentEvent.getTimePeriod().getStart(), tp.getStart()).getSeconds());
+                    span = Seconds.secondsBetween(endSearch, startSearch).getSeconds() / secondsToDaysConst;
+
+                    float[] motionVect = this.trackMovement(currentTrack);
+                    searchArea = this.predictor.getSearchRegion(currentEvent.getBBox(), motionVect, span);
+                    Rectangle2D bbox = GeometryUtilities.createBoundingBox(searchArea);
+                    potentialTracks = this.tracksIdxr.filterOnIntervalAndLocation(new Interval(startSearch, endSearch), bbox);
+                }
+
+
+                //search locations for potential matches up to the maxFrameSkip away
+                //using the previously predicted search area as the starting point
+                //for the next search area.
+                startSearch = currentEvent.getTimePeriod().getEnd();
+                for (int j = 0; j < maxFrameSkip; j++) {
+                    ArrayList<ITrack> potentialTracks2;
+                    if (getIndex(currentTrack, positionOfEvent - 1) == null || getIndex(currentTrack, positionOfEvent - 2) == null) {
+                        //get the search area to find tracks that may belong linked to the current one being processed
+                        span = Seconds.secondsIn(currentEvent.getTimePeriod()).getSeconds() / secondsToDaysConst;
+                        //set the time span to search in as the end of our current track+the
+                        //the span of the frame for the last event in our current track being processed.
+                        endSearch = startSearch.plusSeconds(Seconds.secondsIn(currentEvent.getTimePeriod()).getSeconds());
+                        Rectangle2D rect = GeometryUtilities.createBoundingBox(searchArea);
+                        searchArea = this.predictor.getSearchRegion(rect, span);
+                        Rectangle2D bbox = GeometryUtilities.createBoundingBox(searchArea);
+                        potentialTracks2 = this.tracksIdxr.filterOnIntervalAndLocation(new Interval(startSearch, endSearch), bbox);
+                        startSearch = endSearch;
+                    } else {
+                        Interval tp = getIndex(currentTrack, positionOfEvent - 1).getTimePeriod();
+                        span = currentEvent.getTimePeriod().toDuration().toStandardSeconds().getSeconds() / secondsToDaysConst;
+                        //startSearch = currentEvent.getTimePeriod().end();
+                        endSearch = startSearch.plusSeconds(Seconds.secondsBetween(currentEvent.getTimePeriod().getStart(), tp.getStart()).getSeconds());
+                        double span2 = Seconds.secondsBetween(endSearch, startSearch).getSeconds() / secondsToDaysConst;
+
+                        float[] motionVect = this.trackMovement(currentTrack);
+                        Rectangle2D rect = GeometryUtilities.createBoundingBox(searchArea);
+                        searchArea = this.predictor.getSearchRegion(rect, motionVect, span);
+                        Rectangle2D bbox = GeometryUtilities.createBoundingBox(searchArea);
+                        potentialTracks2 = this.tracksIdxr.filterOnIntervalAndLocation(new Interval(startSearch, endSearch), bbox);
+                        startSearch = endSearch;
+                    }
+
+
+                    //put potential matches not in potentialTracks list into the list
+                    while (!potentialTracks2.isEmpty()) {
+
+                        ITrack possibleTrackFromSkippedFrames = potentialTracks2.remove(potentialTracks2.size() - 1);
+                        boolean isInList = false;
+                        //cout << "Search for potential2 in potential" << endl;
+                        for (ITrack trackInList : potentialTracks) {
+
+                            if (possibleTrackFromSkippedFrames.getFirst().getId() == trackInList.getFirst().
+                                    getId()) {
+                                isInList = true;
+                                break;
+                            }
+                        }
+                        //cout << "done search" << endl;
+                        if (!isInList) {
+                            potentialTracks.add(possibleTrackFromSkippedFrames);
+                        }
+                    }
+
+                }
+
+                //cout << "after frame skip" << endl;
+                //if the list of potential matches has anything in it we will process
+                //those tracks.
+                if (potentialTracks.size() >= 1) {
+                    //if the last event of our track is not already in the unordered map
+                    //we insert the event/idx pair into the Map
+
+                    UUID indexID = currentTrack.getFirst().getUUID();
+                    eventMap.put(indexID, countX++);
+                    //test the first event in each of the potential matches to see if
+                    //it is in the Map and insert it if it is not.
+                    for (ITrack tmpTrk : potentialTracks) {
+                        IEvent tmpEve = tmpTrk.getFirst();
+                        eventMap.put(tmpEve.getUUID(), countX++);
+                    }
+
+                    //create a relation of the track and the potential matches and
+                    //push it onto the vector of relations
+
+                    trackRelationsList.put(currentTrack, potentialTracks);
+
+                }
             }
-            // create a relation of the track and the potential matches and
-            // push it onto the vector of relations
-            relations.put(track, allPotentialTracks);
-        }
+
+            ITrack[] trackletArray = new ITrack[countX];
 
 
-        linkRelatedTracks(relations, eventMap);
-
-        return this.indexer.getAll();
-    }
+            Graph graph = new Graph((countX * 2) + 2);
 
 
-    private ArrayList<ITrack> getAllPotentialTracks(ITrack track) {
-        HashMap<UUID, ITrack> potentialTracks = new HashMap<>();
-        //we get the event associated with the end of our current track as that is
-        //the last frame of the track and has position information and image
-        //information associated with it.
-        IEvent event = track.getFirst();
-        DateTime startSearch = event.getTimePeriod().getEnd();
-        ArrayList<ITrack> potentials = getPotentialTracks(track, startSearch, event.getBBox());
-        for (ITrack t : potentials) {
-            potentialTracks.put(t.getFirst().getUUID(), t);
-        }
-
-        for (int i = 0; i < maxFrameSkip; i++) {
-            ArrayList<ITrack> intermediateTracks = getPotentialTracks(track, startSearch, event.getBBox());
-            for (ITrack t : intermediateTracks) {
-                potentialTracks.put(t.getFirst().getUUID(), t);
-            }
-        }
-        return (ArrayList<ITrack>) potentialTracks.values();
-    }
-
-
-    private ArrayList<ITrack> getPotentialTracks(ITrack track, DateTime startSearch, Rectangle2D rectangle) {
-        IEvent event = track.getLast();
-        if (track.size() > 3) {
-            double span = event.getTimePeriod().toPeriod().getSeconds() / secondsToDaysConstant;
-            DateTime endSearch = startSearch.plus(event.getTimePeriod().toPeriod().getMillis());
-            Point2D[] searchArea = this.positionPredictor.getSearchRegion(rectangle, span);
-            return null;// this.trackIndexer.getTracksStartBetween(startSearch, endSearch, searchArea);
-        } else {
-            Interval period = track.get(track.indexOf(event)).getTimePeriod();
-            DateTime endSearch = startSearch.plus(event.getTimePeriod().getStartMillis() - period.getStartMillis());
-            double span = ((endSearch.minus(startSearch.getMillis())).getMillis() / 1000) / secondsToDaysConstant;
-            float[] motionVect = trackMovement(track);
-            Point2D[] searchArea = this.positionPredictor.getSearchRegion(rectangle, motionVect, span);
-            return null; //this.trackIndexer.getTracksStartBetween(startSearch, endSearch, searchArea);
-        }
-    }
-
-
-//    private void process(ArrayList<TrackRelation> relations, HashMap<UUID, Integer> eventMap) {
+            //add two vertices for all left and right events plus a source and sink vertex
+//            CostGraph::size_type N((countX * 2) + 2);
+//            for (CostGraph::size_type i = 0; i < N ;
+//            i++){
+//                boost::add_vertex (g);
+//            }
+//
+//            CostGraph::Capacity capacity = get(boost::edge_capacity, g);
+//
+//            typedef property_map<CostGraph::Graph, edge_reverse_t >::type Reversed;
+//            Reversed rev = get(boost::edge_reverse, g);
+//            CostGraph::ResidualCapacity residual_capacity = get(boost::edge_residual_capacity, g);
+//            CostGraph::Weight weight = get(boost::edge_weight, g);
 //
 //
-//
-//    }
+//            CostGraph::EdgeAdder ea(g, weight,
+//                    , rev, residual_capacity);
 
-    private void initializeDataStructuresForSSP(ITrack[] trackletArray, SimpleDirectedWeightedGraph graph, HashMap<ITrack, ArrayList<ITrack>> relations, HashMap<UUID, Integer> eventMap) {
-        int capacity = 1;
-        for (ITrack track: relations.keySet()) {
-            int x = eventMap.get(track.getFirst().getUUID());
-            trackletArray[x] = track;
-            for (ITrack possibleSuccessor : relations.get(track)) {
-                int y = eventMap.get(possibleSuccessor.getFirst().getUUID());
-                trackletArray[y] = possibleSuccessor;
-                double probablity = prob(track, possibleSuccessor);
-                int weightValue = -(int) Math.log(probablity) * multFactor;
-                Edge edge = new Edge(edgeCap);
-                Integer v1 = new Integer(x * 2 + 1);
-                Integer v2 = new Integer(y * 2);
-                graph.addEdge(v1, v2, edge);
-                graph.setEdgeWeight(edge, weightValue);
+            //all edges will have a flow of 1
+            int edgeCap = 1;
+            //process all of the associations in the list of assocaitions
+            for (ITrack track : trackRelationsList.keySet()) {
+
+                //get the x index of the track to process
+                int x = eventMap.get(track.getFirst().getUUID());
+
+                //add the tracklet to process to the array of events
+                trackletArray[x] = track;
+
+                //process each track associated with this track
+                //cout << "TR.Relate Size: " << tr.relate.size() << endl;
+                ArrayList<ITrack> relations = trackRelationsList.get(track);
+                while (!relations.isEmpty()) {
+                    ITrack tmp = relations.remove(relations.size() - 1);
+
+                    //get the y index of the track that is a potential match
+                    //to our current track.
+                    int y = eventMap.get(tmp.getFirst().getId());
+                    trackletArray[y] = tmp;
+                    //get the probability*multFactor of the two tracks belonging together
+                    //it is multiplied by multFactor because the algorithm uses int and not
+                    //a floating point value.
+
+                    //add the probability in the appropriate location
+                    double prob = this.prob(track, tmp);
+                    int weightVal = -(int) (Math.log(prob) * multFactor);
+                    graph.addEdge((x * 2) + 1, y * 2, 1, edgeCap);
+                }
             }
-        }
 
-        Integer source = (countX * 2);
-        Integer sink = (countX * 2) + 1;
+            Integer source;
+            Integer sink;
+            //set source vertex
+            source = (countX * 2);
+            //set sink vertex;
+            sink = (countX * 2) + 1;
+            //cout << "Sink: " << sink << endl;
 
-        //add edges from source to tracklets
-        //and from their second node to sink
-        for (int j = 0; j < countX; j++) {
-            ITrack track = trackletArray[j];
-            double Bi = getPoissonProb(track.getFirst());
-            int obsCost = (int) (Math.log(Bi / (1.0 - Bi)) * multFactor);
-            Integer v1 = j * 2;
-            Integer v2 = j * 2 + 1;
-            Edge firstEdge = new Edge(edgeCap);
-            graph.addEdge(v1, v2, firstEdge);
-            graph.setEdgeWeight(firstEdge, obsCost);
+            //add edges from source to tracklets
+            //and from their second node to sink
+            for (int j = 0; j < countX; j++) {
 
-            double entPd = pEnter(track);
-            int entP = -(int) (Math.log(entPd) * multFactor);
-            v2 = new Integer(j * 2);
-            Edge secondEdge = new Edge(edgeCap);
-            graph.addEdge(source, v2, secondEdge);
-            graph.setEdgeWeight(secondEdge, entP);
+                ITrack track = trackletArray[j];
+                double Bi = this.getPoissonProb(track.getFirst());
+                //printf("Bi: %E \n", Bi);
+                int obsCost = (int) (Math.log(Bi / (1.0 - Bi)) * multFactor);
+                //cout << "ObsCost: " << obsCost << endl;
 
-            double exPd = pExit(track);
+                graph.addEdge((j * 2), ((j * 2) + 1), obsCost, edgeCap);
+
+                double entPd = this.pEnter(track);
+                /*printf("entP: %E \n", entPd);*/
+                int entP = -(int) (Math.log(entPd) * multFactor);
+                //cout << "entP: " << entP << endl;
+
+                graph.addEdge(source, (j * 2), entP, edgeCap);
+
+                double exPd = this.pExit(track);
                 /*printf("exP: %E \n", exPd);*/
-            int exP = -(int) (Math.log(exPd) * multFactor);
-            //cout << "exP: " << exP << endl;
-            v1 = new Integer((j * 2) + 1);
-            Edge thirdEdge = new Edge(edgeCap);
-            graph.addEdge(v1, sink, thirdEdge);
-            graph.setEdgeWeight(thirdEdge, exP);
-        }
-    }
+                int exP = -(int) (Math.log(exPd) * multFactor);
+                //cout << "exP: " << exP << endl;
 
-    private void linkRelatedTracks(HashMap<ITrack, ArrayList<ITrack>> relations, HashMap<UUID, Integer> eventMap) {
-        int countX = 0;
+                graph.addEdge(((j * 2) + 1), sink, exP, edgeCap);
 
-        ITrack[] trackletArray = new ITrack[countX];
-        SimpleDirectedWeightedGraph graph = new SimpleDirectedWeightedGraph(Edge.class);
-        initializeDataStructuresForSSP(trackletArray, graph, relations, eventMap);
-        int[] capacity = calculateCapacity(graph);
-        int[] residualCapacity = calculateResidualCapacity(graph);
-
-        //set source vertex
-        Integer source = new Integer(countX * 2);
-        //cout << "Source: " << source << endl;
-        //set sink vertex;
-        Integer sink = new Integer(countX * 2 + 1);
+            }
 
 
-        SuccessiveShortestPaths ssp = new SuccessiveShortestPaths(graph);
+            SuccessiveShortestPaths ssp = new SuccessiveShortestPaths(graph, source, sink);
 
-        long cost = ssp.findFlowCost(source, sink);
+            long cost = boost::find_flow_cost (g);
+            boost::graph_traits < CostGraph::Graph >::vertex_iterator u_iter, u_end;
+            boost::graph_traits < CostGraph::Graph >::out_edge_iterator ei, e_end;
 
-        // get iterator for all vertices of the graph and process it up to the end iterator
-        Set<Integer> vertices = graph.vertexSet();
-        for (Integer vertex : vertices) {
+            //get iterator for all vertices of the graph and process it up to the end iterator
+            for (boost::tie (u_iter,u_end)=boost::vertices (g);
+            u_iter != u_end;
+            u_iter++){
 
-            /*  If the source vertex then we don't need to process it.
-                Similarly we don't want to process the first vertex added for a track fragment
-                get all the edges going out of the current vertex and process them */
-            Set<Integer> relevantEdges = graph.outgoingEdgesOf(vertex);
-            for (Integer target : relevantEdges) {
-                //If the capacity was a non-zero number then it is on the cost graph and not the residual capacity
-                //graph so we will process it.
-                int eiCap = capacity[target];
-                if (eiCap > 0) {
-                    //if the target for this edge is the sink we don't want to process it
-                    int y = target;
-                    if (target.equals(sink)) continue;
+                //If the source vertex then we don't need to process it.
+                //Similarly we don't want to process the first vertex added for a track fragment
+                int x =*u_iter;
+                if ((!(x % 2)) || (x == source)) continue;
 
-                    //if residual capacity is 0 then we are using it and need to process it
-                    int eiResidual = residualCapacity[target];
-                    if ((eiCap - eiResidual) == 1) {
-                        ITrack leftTrack = trackletArray[vertex / 2];
-                        IEvent leftEvent = leftTrack.getLast();
-                        ITrack rightTrack = trackletArray[target / 2];
-                        IEvent rightEvent = rightTrack.getFirst();
+                //get all the edges going out of the current vertex and process them
+                for (boost::tie (ei,e_end)=boost::out_edges ( * u_iter, g);
+                ei != e_end;
+                ei++){
 
+                    //If the capacity was a non-zero number then it is on the cost graph and not the residual capacity
+                    //graph so we will process it.
+                    int eiCap = capacity[ * ei];
+                    if (eiCap > 0) {
 
-                        //A final sanity check, to make sure it isn't the same event detection we are trying to
-                        //attach.  This would create an infinite loop (no good). This is probably not needed.
-                        if (!leftEvent.equals(rightEvent)) {
-                            leftTrack.addAll(rightTrack);
-                            trackletArray[target / 2] = null;
+                        //if the target for this edge is the sink we don't want to process it
+                        int y = boost::target ( * ei, g);
+                        if (y == sink) continue;
+
+                        //if residual capacity is 0 then we are using it and need to process it
+                        int eiResidual = residual_capacity[ * ei];
+                        if ((eiCap - eiResidual) == 1) {
+                            ITrack leftTrack = trackletArray[x / 2];
+                            IEvent leftEvent = leftTrack.getLast();
+                            ITrack rightTrack = trackletArray[y / 2];
+                            IEvent rightEvent = rightTrack.getFirst();
+                            int eventPositionInLeftTrack = leftTrack.indexOf(leftEvent);
+                            int eventPositionInRightTrack = rightTrack.indexOf(rightEvent);
+                            //If the events do not have any others already assocaited with them.
+                            if (getIndex(leftTrack, eventPositionInLeftTrack + 1) == null && getIndex(rightTrack, eventPositionInRightTrack - 1) == null) {
+
+                                //A final sanity check, to make sure it isn't the same event detection we are trying to
+                                //attach.  This would create an infinite loop (no good). This is probably not needed.
+                                if (leftEvent != rightEvent) {
+                                    //cout << "Link x: " << x << " and y: " << y << endl;
+                                    leftTrack.addAll(rightTrack);
+                                }
+                            }
                         }
                     }
                 }
             }
         }
+
+        return this.tracksIdxr.getAll();
     }
 
-    protected int[] calculateResidualCapacity(SimpleDirectedWeightedGraph graph){
-        //TODO: Implement this
-        return new int[0];
+    private double getPoissonProb(IEvent event) {
+        DateTime start = this.evntsIdxr.getFirstTime();
+        DateTime end = start.plusSeconds(this.timeSpan * this.numSpan);
+        Interval timePeriod = new Interval(start, end);
+        int lambda = 0;
+        int delta = 0;
+        if (event.intersects(timePeriod)) {
+            end = start.plus(this.timeSpan * this.numSpan);
+            Interval range = new Interval(start, end);
+            lambda = evntsIdxr.getExpectedChangePerFrame(range);
+            range = event.getTimePeriod();
+            range = new Interval(range.getStart(), range.getEnd().plusSeconds(this.timeSpan * this.numSpan));
+            delta = evntsIdxr.getExpectedChangePerFrame(range);
+        } else {
+            end = this.evntsIdxr.getLastTime();
+            start = end.minusSeconds(this.timeSpan * this.numSpan);
+            Interval range = new Interval(start, end);
+            lambda = evntsIdxr.getExpectedChangePerFrame(range);
+            range = event.getTimePeriod();
+            range = new Interval(range.getStart().minusSeconds(this.timeSpan * this.numSpan), range.getEnd());
+            delta = evntsIdxr.getExpectedChangePerFrame(range);
+        }
+        if (lambda > 0) {
+            double lamPow = Math.pow(lambda, delta);
+            double lamExp = Math.exp(-lambda);
+            double fact = CombinatoricsUtils.factorialDouble(delta);
+            return (lamPow * lamExp) / fact;
+        } else if (lambda == 0 && delta < 2) {
+            return 0.0000001;
+        } else {
+            return .98;
+        }
     }
 
-    private int[] calculateCapacity(SimpleDirectedWeightedGraph graph) {
-        //TODO: Implement this
-        return new int[0];
-    }
+    private void getHist(Mat hist, IEvent evnt, boolean left) {
+        if (evnt == null) {
+            Mat m0 = new Mat(1, 1, CV_32FC(3));
+            ArrayList<Mat> listOfMat = new ArrayList<Mat>();
+            listOfMat.add(m0);
+            boolean uniform = true;
+            boolean accumulate = false;
+            //upper bound on ranges are exclusive
+            int channelList[] = {0, 1, 2};
+            int histSize = 15;
+            int histSizes[] = {histSize, histSize, histSize};
+            Imgproc.calcHist(listOfMat, 1, channelList, new Mat(), hist, 3, histSizes, this.histRanges, uniform, accumulate);
+        } else {
+            try {
+                double[][][] paramsVect = getImageParam(evnt, left);
+                Mat m = new Mat(paramsVect.length, paramsVect[0].length, CV_32FC(10));
+                for (int i = 0; i < 10; i++) {
+                    for (int x = 0; x < paramsVect.length; x++) {
+                        for (int y = 0; y < paramsVect[0].length; y++) {
+                            m.get(x, y)[i] = paramsVect[x][y][i];
+                        }
+                    }
+                }
+
+                boolean uniform = true;
+                boolean accumulate = false;
 
 
-    private double getPoissonProb(IEvent first) {
-        //TODO: Implement this
-        return 0;
-    }
+                int histSize = 15;
+                double[] channelList = new double[this.params.length];
+                int[] histSizes = new int[this.params.length];
+                for (int i = 0; i < this.params.length; i++) {
+                    channelList[i] = params[i];
+                    histSizes[i] = histSize;
+                }
+                Imgproc.calcHist(m, 1, channelList, new Mat(), hist, this.params.length, histSizes, this.histRanges, uniform, accumulate);
+            } catch (Exception ex) {
+                Mat m0 = new Mat(1, 1, CV_32FC(3));
+                boolean uniform = true;
+                boolean accumulate = false;
+                //upper bound on ranges are exclusive
 
-    private double prob(ITrack track, ITrack tmpTrack) {
-        return 0;
-    }
-
-    private double pEnter(ITrack track) {
-        return this.eventProb(track.getFirst(), 0);
-    }
-
-    private double pExit(ITrack track) {
-        return this.eventProb(track.getLast(), 1);
+                int channelList[] = {0, 1, 2};
+                int histSize = 15;
+                int histSizes[] = {histSize, histSize, histSize};
+                Imgproc.calcHist(m0, 1, channelList, new Mat(), hist, 3, histSizes, this.histRanges, uniform, accumulate);
+            }
+        }
     }
 
     private double eventProb(IEvent event, int idx) {
@@ -276,7 +452,7 @@ public abstract class BaseUpperStage extends Stage {
         //for each region in our array of regions, check if they are in the
         //search area for our next event.
         Point2D[] scaledSearchArea = new Point2D[4];
-//
+
         Rectangle2D rectangle = new Rectangle2D();
         if (event.getType().equals("SG") || event.getType().equals("FL")) {
             Rectangle2D boundingBox = event.getBBox();
@@ -299,13 +475,10 @@ public abstract class BaseUpperStage extends Stage {
         double minVal = 0;
         boolean isSet = false;
         int count = 0;
-//        //#pragma omp parallel for collapse(2) reduction(+:returnValue, count)
         for (int i = (int) rectangle.getX() - 2; i <= rectangle.getX() + rectangle.getWidth() + 2; i++) {
             for (int j = (int) rectangle.getY() - 2; j <= rectangle.getY() + rectangle.getHeight() + 2; j++) {
-//                //if inside the search area and there are events associated with the location
                 if (i >= regionDimension || j >= regionDimension || i < 0 || j < 0) continue;
                 if (GeometryUtilities.isInsideSearchArea(new Point2D(i, j), scaledSearchArea)) {
-
                     if (!isSet) {
                         minVal = this.pValues[i][j][idx];
                         isSet = true;
@@ -320,9 +493,6 @@ public abstract class BaseUpperStage extends Stage {
             }
         }
 
-        //cout << "retCount: " << returnCount << endl;
-        //printf("PentEx: %E \n", returnValue);
-        //returnValue = returnValue / count;
         if (minVal > 0) {
             returnValue = minVal / this.pValMax[idx];
         } else {
@@ -336,6 +506,31 @@ public abstract class BaseUpperStage extends Stage {
         }
 
         return returnValue;
+    }
+
+    protected abstract double prob(ITrack leftTrack, ITrack rightTrack);
+
+    private double calcNormProb(double x, double mean, double stdDev) {
+        double val1 = normCDF(x - stdDev, mean, stdDev);
+        double val2 = normCDF(x + stdDev, mean, stdDev);
+        double val = val2 - val1;
+
+        return val;
+    }
+
+    private double normCDF(double x, double mean, double stdDev) {
+        double val = (x - mean) / (stdDev * Math.sqrt(2.0));
+        val = 1.0 + Erf.erf(val);
+        val = val * 0.5;
+        return val;
+    }
+
+    protected double pEnter(ITrack track) {
+        return this.eventProb(track.getFirst(), 0);
+    }
+
+    protected double pExit(ITrack track) {
+        return this.eventProb(track.getLast(), 1);
     }
 
     protected double PFrameGap(ITrack leftTrack, ITrack rightTrack) {
@@ -361,101 +556,17 @@ public abstract class BaseUpperStage extends Stage {
     protected double PAppearance(ITrack leftTrack, ITrack rightTrack) {
         Mat leftFrameHist = new Mat();
         Mat rightFrameHist = new Mat();
-//
-//        #pragma omp parallel sections
-//        {
-//            #pragma omp section
-//            {
         getHist(leftFrameHist, leftTrack.getLast(), true);
-//            }
-//            #pragma omp section
-//            {
         getHist(rightFrameHist, rightTrack.getFirst(), false);
-//            }
-//        }
-//
-//
-
-        double compVal = compareHist(leftFrameHist, rightFrameHist, Imgproc.CV_COMP_BHATTACHARYYA);
-//        //cout << "Hist dist: " << compVal << endl;
+        double compVal = Imgproc.compareHist(leftFrameHist, rightFrameHist, Imgproc.CV_COMP_BHATTACHARYYA);
         double sameProb, diffProb;
-//
-//        //#pragma omp parallel sections
-//        {
-//            //#pragma omp section
-//            {
         sameProb = calcNormProb(compVal, sameMean, sameStdDev);
-//            }
-//            //#pragma omp section
-//            {
         diffProb = calcNormProb(compVal, diffMean, diffStdDev);
-//            }
-//        }
         return sameProb / (sameProb + diffProb);
     }
 
-    private void getHist(Mat hist, IEvent evnt, boolean left) {
 
-        if (evnt == null) {
-            Mat m0 = new Mat(1, 1, CV_32FC(3));
-            boolean uniform = true;
-            boolean accumulate = false;
-            //upper bound on ranges are exclusive
-
-
-            int channelList[] = {0, 1, 2};
-            int histSize = 15;
-            int histSizes[] = {histSize, histSize, histSize};
-            //TODO: Fix this
-            // calcHist(m0, 1, channelList, new Mat(), hist, 3, histSizes, this.histRanges, uniform, accumulate);
-        } else {
-            try {
-
-
-                //Mat m;
-                //TODO: Fix this
-                ArrayList<ArrayList<ArrayList<Double>>> paramsVect = new ArrayList<>();//= this.db.getImageParam(evnt, left);
-
-                Mat m = new Mat(paramsVect.size(), paramsVect.get(0).size(), CV_32FC(10));
-
-                for (int i = 0; i < 10; i++) {
-                    for (int x = 0; x < paramsVect.size(); x++) {
-                        for (int y = 0; y < paramsVect.get(0).size(); y++) {
-                            m.get(x, y)[i] = paramsVect.get(x).get(y).get(i);
-                        }
-                    }
-                }
-
-                boolean uniform = true;
-                boolean accumulate = false;
-
-
-                int histSize = 15;
-
-                int[] channelList = new int[this.params.size()];
-                int[] histSizes = new int[this.params.size()];
-                for (int i = 0; i < this.params.size(); i++) {
-                    channelList[i] = params.get(i);
-                    histSizes[i] = histSize;
-                }
-                //TODO: Fix this
-                // calcHist(m, 1, channelList,new Mat(), hist, this.params.size(), histSizes, this.histRanges, uniform, accumulate);
-            } catch (Exception ex) {
-                Mat m0 = new Mat(1, 1, CV_32FC(3));
-                boolean uniform = true;
-                boolean accumulate = false;
-                //upper bound on ranges are exclusive
-
-                int channelList[] = {0, 1, 2};
-                int histSize = 15;
-                int histSizes[] = {histSize, histSize, histSize};
-                //TODO: Fix this
-                // calcHist(m0, 1, channelList, new Mat(), hist, 3, histSizes, this.histRanges, uniform, accumulate);
-            }
-        }
-    }
-
-    private float[] trackMovement(ITrack track) {
+    protected float[] trackMovement(ITrack track) {
         double xMovement = 0.0;
         double yMovement = 0.0;
         double totalTime = 0.0;
@@ -490,8 +601,6 @@ public abstract class BaseUpperStage extends Stage {
             double tMean = totalTime / count;
             float xMeanPerTime = (float) (xMean / tMean);
             float yMeanPerTime = (float) (yMean / tMean);
-            //float val = (xMeanPerTime * xMeanPerTime) + (yMeanPerTime * yMeanPerTime);
-            //val = sqrt(val);
 
             motionNormMean[0] = xMeanPerTime;
             motionNormMean[1] = yMeanPerTime;
@@ -502,19 +611,11 @@ public abstract class BaseUpperStage extends Stage {
         return motionNormMean;
     }
 
-    private double calcNormProb(double x, double mean, double stdDev) {
-        double val1 = normCDF(x - stdDev, mean, stdDev);
-        double val2 = normCDF(x + stdDev, mean, stdDev);
-        double val = val2 - val1;
-
-        return val;
+    protected IEvent getIndex(ITrack track, int position) {
+        try {
+            return track.get(position);
+        } catch (IndexOutOfBoundsException e) {
+            return null;
+        }
     }
-
-    private double normCDF(double x, double mean, double stdDev) {
-        double val = (x - mean) / (stdDev * Math.sqrt(2.0));
-        val = 1.0 + Erf.erf(val);
-        val = val * 0.5;
-        return val;
-    }
-
 }

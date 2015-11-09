@@ -30,7 +30,7 @@ public class TrackTest {
     @Test
     public void GetEndTimeMillis_TrackWithOneEvent_() throws Exception {
         IEvent mockedEvent = mock(GenaricEvent.class);
-        long startTimeMillis = 111111111;
+        long startTimeMillis = 11111111;
         long endTimeMillis = 33333333;
         when(mockedEvent.getTimePeriod()).thenReturn(new Interval(startTimeMillis, endTimeMillis));
         Track track = new Track((mockedEvent));
@@ -40,9 +40,9 @@ public class TrackTest {
     @Test
     public void GetEndTimeMillis_TrackCreatedWithEvents_() {
         IEvent mockedEvent1 = mock(GenaricEvent.class);
-        long startTimeMillisOne = 111111111;
+        long startTimeMillisOne = 11111111;
         long endTimeMillisOne = 33333333;
-        long startTimeMillisTwo = 111111111;
+        long startTimeMillisTwo = 11111111;
         long endTimeMillisTwo = 33333333;
         when(mockedEvent1.getTimePeriod()).thenReturn(new Interval(startTimeMillisOne, endTimeMillisOne));
         IEvent mockedEvent2 = mock(GenaricEvent.class);
@@ -91,12 +91,12 @@ public class TrackTest {
     @Test
     public void GetTimePeriod_TrackContainsEvents_TimePeriodFromFirstToLast() throws Exception {
         IEvent mockedEvent0 = mock(GenaricEvent.class);
-        long startTimeMillis1 = 111111111;
+        long startTimeMillis1 = 11111111;
         long endTimeMillis1 = 33333333;
         when(mockedEvent0.getTimePeriod()).thenReturn(new Interval(startTimeMillis1, endTimeMillis1));
         IEvent mockedEvent4 = mock(GenaricEvent.class);
-        long startTimeMillis2 = 444444444;
-        long endTimeMillis2 = 555555555;
+        long startTimeMillis2 = 44444444;
+        long endTimeMillis2 = 55555555;
         when(mockedEvent4.getTimePeriod()).thenReturn(new Interval(startTimeMillis2, endTimeMillis2));
         IEvent mockedEvent1 = mock(GenaricEvent.class);
         IEvent mockedEvent2 = mock(GenaricEvent.class);

@@ -1,5 +1,6 @@
 package edu.gsu.dmlab.stages;
 
+import edu.gsu.dmlab.datatypes.interfaces.IEvent;
 import edu.gsu.dmlab.datatypes.interfaces.ITrack;
 import edu.gsu.dmlab.indexes.interfaces.IEventIndexer;
 import edu.gsu.dmlab.indexes.interfaces.ITrackIndexer;
@@ -16,30 +17,20 @@ public class StageTwo extends BaseUpperStage {
 
     ITrackIndexer trackIndexer;
 
-    public StageTwo(ITrackIndexer trackIndexer, IEventIndexer eventIndexer, IPositionPredictor positionPredictor, Configuration configuration, int maxFrameSkip) {
-        super(trackIndexer, positionPredictor, configuration, maxFrameSkip);
+    public StageTwo(IPositionPredictor predictor, IEventIndexer evntsIdxr, ITrackIndexer tracksIdxr,
+                    int timeSpan, int numSpan, int maxFrameSkip, double sameMean, double sameStdDev, double diffMean,
+                    double diffStdDev, double[] histRanges, double[] params, double[][][] pValues) {
+        super(predictor, evntsIdxr, tracksIdxr,
+                timeSpan, numSpan, maxFrameSkip, sameMean, sameStdDev, diffMean,
+                diffStdDev, histRanges, params, pValues);
     }
 
 
-    double prob(ITrack leftTrack, ITrack rightTrack) {
+    protected double prob(ITrack leftTrack, ITrack rightTrack) {
         double p = 1;
-//        #pragma omp parallel sections reduction(*:p)
-//        {
-//            #pragma omp section
-//            {
-        p = this.PAppearance(leftTrack, rightTrack);
-//            }
-//            #pragma omp section
-//            {
-        p = this.PFrameGap(leftTrack, rightTrack);
-//            }
-//        }
-
+        p *= this.PAppearance(leftTrack, rightTrack);
+        p *= this.PFrameGap(leftTrack, rightTrack);
         return p;
     }
 
-
-    public int getMaxFrameSkip() {
-        return maxFrameSkip;
-    }
 }

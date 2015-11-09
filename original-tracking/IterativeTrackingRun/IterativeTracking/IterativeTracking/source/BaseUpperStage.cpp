@@ -213,8 +213,7 @@ public:
 						potentialTracks2 = this->tracksIdxr->getTracksStartBetween(startSearch, endSearch, searchArea);
 						//cout << "end get" << endl;
 						startSearch = endSearch;
-					}
-					else{
+					} else {
 						boost::posix_time::time_period tp = currentEvent->getPrevious()->getTimePeriod();
 						//startSearch = currentEvent->getTimePeriod().end();
 						bt::ptime endSearch = startSearch + (currentEvent->getTimePeriod().begin() - tp.begin());
