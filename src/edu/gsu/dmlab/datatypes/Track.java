@@ -53,7 +53,9 @@ public class Track extends ArrayList<IEvent> implements ITrack {
 
     @Override
     public IEvent[] getEvents() {
-        return (IEvent[]) this.toArray();
+    	IEvent[] retArr = new IEvent[this.size()];
+    	this.toArray(retArr);
+        return retArr;
     }
 
     @Override

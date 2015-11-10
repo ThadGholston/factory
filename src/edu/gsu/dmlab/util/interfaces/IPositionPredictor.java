@@ -9,17 +9,19 @@
 package edu.gsu.dmlab.util.interfaces;
 
 
+import java.awt.Polygon;
+import java.awt.Rectangle;
+
 import edu.gsu.dmlab.geometry.Point2D;
-import edu.gsu.dmlab.geometry.Rectangle2D;
 
 public interface IPositionPredictor {
 	Point2D getPredictedPos(Point2D point, double span);
 
-	Point2D[] getPredictedPos(Point2D[] poly, double span);
+	Polygon getPredictedPos(Polygon poly, double span);
 
-	Point2D[] getPredictedPos(Point2D[] poly, float[] movementVect, double span);
+	Polygon getPredictedPos(Polygon poly, float[] movementVect, double span);
 
-	Point2D[] getSearchRegion(Rectangle2D bBox, double span);
+	Polygon getSearchRegion(Rectangle bBox, double span);
 
-	Point2D[] getSearchRegion(Rectangle2D bBox, float[] movementVect, double span);
+	Polygon getSearchRegion(Rectangle bBox, float[] movementVect, double span);
 }

@@ -13,7 +13,7 @@ import java.util.UUID;
 
 import edu.gsu.dmlab.datatypes.interfaces.IBaseDataType;
 import edu.gsu.dmlab.geometry.Point2D;
-import edu.gsu.dmlab.geometry.Rectangle2D;
+
 import org.joda.time.Interval;
 
 import edu.gsu.dmlab.datatypes.interfaces.IEvent;
@@ -21,7 +21,7 @@ import edu.gsu.dmlab.datatypes.interfaces.IEvent;
 import java.awt.Polygon;
 import java.awt.Rectangle;
 
-public class GenaricEvent implements IEvent {
+public class GenericEvent implements IEvent {
 
 	private int id;
 	private Polygon poly = null;
@@ -34,7 +34,7 @@ public class GenaricEvent implements IEvent {
 	IEvent previous = null;
 	UUID uniqueId = null;
 
-	public GenaricEvent(int id, Interval timePeriod, Point2D location, Rectangle bbox,
+	public GenericEvent(int id, Interval timePeriod, Point2D location, Rectangle bbox,
 						Polygon poly, EventType type) {
 		if (timePeriod == null)
 			throw new IllegalArgumentException(
@@ -59,10 +59,6 @@ public class GenaricEvent implements IEvent {
 		this.timePeriod = timePeriod;
 		this.type = type;
 		this.uniqueId = UUID.randomUUID();
-	}
-
-	private EventType convertStringToEventType(String eventType){
-		return EventType.ACTIVE_REGION;
 	}
 
 	/*
