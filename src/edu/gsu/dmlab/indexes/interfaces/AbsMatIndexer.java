@@ -1,11 +1,13 @@
 package edu.gsu.dmlab.indexes.interfaces;
 
 import edu.gsu.dmlab.datatypes.interfaces.IBaseDataType;
-import edu.gsu.dmlab.geometry.Rectangle2D;
+import edu.gsu.dmlab.geometry.GeometryUtilities;
 
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
+import java.awt.Polygon;
+import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.UUID;
@@ -72,11 +74,13 @@ public abstract class AbsMatIndexer<T extends IBaseDataType> {
 
 	@SuppressWarnings("unchecked")
 	public ArrayList<T> filterOnIntervalAndLocation(Interval timePeriod,
-			Rectangle2D boundingBox) {
+			Polygon searchArea) {
 		ConcurrentHashMap<UUID, IBaseDataType> results = new ConcurrentHashMap<>();
-		for (int x = (int) boundingBox.getMinX(); x < (int) boundingBox
+		Rectangle searchBoundingBox = searchArea.getBounds();
+		
+		for (int x = (int) searchBoundingBox.getMinX(); x < (int) searchBoundingBox
 				.getMaxX(); x++) {
-			for (int y = (int) boundingBox.getMinY(); y < (int) boundingBox
+			for (int y = (int) searchBoundingBox.getMinY(); y < (int) searchBoundingBox
 					.getMaxY(); y++) {
 				for (IBaseDataType object : searchSpace[x][y]) {
 					if (object.getTimePeriod().overlaps(timePeriod)) {

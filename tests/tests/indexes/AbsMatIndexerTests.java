@@ -7,12 +7,14 @@ import org.junit.Test;
 
 import static org.mockito.Mockito.*;
 
+import java.awt.Polygon;
 import java.util.ArrayList;
 import java.util.UUID;
 
 import org.joda.time.Interval;
 
 import edu.gsu.dmlab.datatypes.interfaces.IBaseDataType;
+import edu.gsu.dmlab.datatypes.interfaces.IEvent;
 import edu.gsu.dmlab.geometry.Rectangle2D;
 import edu.gsu.dmlab.indexes.interfaces.AbsMatIndexer;
 
@@ -134,12 +136,16 @@ public class AbsMatIndexerTests {
 		when(obj.getTimePeriod()).thenReturn(itvl);
 		
 		Rectangle2D rect = new Rectangle2D(1,1,2,2);
+		int[] xArr2 = {1,3,3,1};
+		int[] yArr2 = {1,1,3,3};
+		Polygon poly = new Polygon(xArr2, yArr2, xArr2.length);
+		
 		
 		//adds to index so we can get it back out
 		idxr.setSearchSpace(rect, obj);
 		
 		
-		ArrayList<IBaseDataType> retList = idxr.filterOnIntervalAndLocation(itvl, rect);
+		ArrayList<IBaseDataType> retList = idxr.filterOnIntervalAndLocation(itvl, poly);
 		assertTrue(retList.size()==1);
 		
 	}
@@ -161,8 +167,10 @@ public class AbsMatIndexerTests {
 		//adds to index so we can get it back out
 		idxr.setSearchSpace(rect, obj);
 		
-		Rectangle2D rect2 = new Rectangle2D(3,3,1,1);
-		ArrayList<IBaseDataType> retList = idxr.filterOnIntervalAndLocation(itvl, rect2);
+		int[] xArr2 = {3,4,4,3};
+		int[] yArr2 = {3,3,4,4};
+		Polygon poly = new Polygon(xArr2, yArr2, xArr2.length);
+		ArrayList<IBaseDataType> retList = idxr.filterOnIntervalAndLocation(itvl, poly);
 		assertTrue(retList.size()==0);
 		
 	}
@@ -185,7 +193,10 @@ public class AbsMatIndexerTests {
 		idxr.setSearchSpace(rect, obj);
 		
 		Interval itvl2 = new Interval (600, 700);
-		ArrayList<IBaseDataType> retList = idxr.filterOnIntervalAndLocation(itvl2, rect);
+		int[] xArr2 = {1,3,3,1};
+		int[] yArr2 = {1,1,3,3};
+		Polygon poly = new Polygon(xArr2, yArr2, xArr2.length);
+		ArrayList<IBaseDataType> retList = idxr.filterOnIntervalAndLocation(itvl2, poly);
 		assertTrue(retList.size()==0);
 		
 	}

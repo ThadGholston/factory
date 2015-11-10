@@ -14,8 +14,10 @@ import java.util.UUID;
 
 import edu.gsu.dmlab.datatypes.EventType;
 import edu.gsu.dmlab.geometry.Point2D;
-import edu.gsu.dmlab.geometry.Rectangle2D;
 import org.joda.time.Interval;
+
+import java.awt.Polygon;
+import java.awt.Rectangle;
 
 public interface IEvent extends IBaseDataType {
 
@@ -35,13 +37,13 @@ public interface IEvent extends IBaseDataType {
 	 * Returns the minimum bounding rectangle of the event that this object represents
 	 * @return	minimum bounding rectangle of the event
 	 */
-	Rectangle2D getBBox();
+	Rectangle getBBox();
 
 	/**
 	 * Returns the polygon representation of the event that this object represents
 	 * @return	polygon representation of the event
 	 */
-	Point2D[] getShape();
+	Polygon getShape();
 
 	/**
 	 * Updates the time period that this object is valid

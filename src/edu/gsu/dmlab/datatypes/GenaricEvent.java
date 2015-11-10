@@ -18,11 +18,14 @@ import org.joda.time.Interval;
 
 import edu.gsu.dmlab.datatypes.interfaces.IEvent;
 
+import java.awt.Polygon;
+import java.awt.Rectangle;
+
 public class GenaricEvent implements IEvent {
 
 	private int id;
-	private Point2D[] poly = null;
-	private Rectangle2D bBox = null;
+	private Polygon poly = null;
+	private Rectangle bBox = null;
 	private Point2D location = null;
 	private Interval timePeriod = null;
 	private EventType type = null;
@@ -31,8 +34,8 @@ public class GenaricEvent implements IEvent {
 	IEvent previous = null;
 	UUID uniqueId = null;
 
-	public GenaricEvent(int id, Interval timePeriod, Point2D location, Rectangle2D bbox,
-						Point2D[] poly, EventType type) {
+	public GenaricEvent(int id, Interval timePeriod, Point2D location, Rectangle bbox,
+						Polygon poly, EventType type) {
 		if (timePeriod == null)
 			throw new IllegalArgumentException(
 					"Interval cannot be null in GenaricEvet constructor.");
@@ -41,10 +44,10 @@ public class GenaricEvent implements IEvent {
 					"Point2D cannot be null in GenaricEvet constructor.");
 		if (bbox == null)
 			throw new IllegalArgumentException(
-					"Rectangle2D cannot be null in GenaricEvet constructor.");
+					"Rectangle cannot be null in GenaricEvet constructor.");
 		if (poly == null)
 			throw new IllegalArgumentException(
-					"Point2D[] cannot be null in GenaricEvet constructor.");
+					"Polygon cannot be null in GenaricEvet constructor.");
 		if (type == null)
 			throw new IllegalArgumentException(
 					"Type cannot be null in GenaricEvet constructor.");
@@ -88,7 +91,7 @@ public class GenaricEvent implements IEvent {
 	 * @see edu.gsu.dmlab.datatypes.interfaces.IEvent#getBBox()
 	 */
 	@Override
-	public Rectangle2D getBBox() {
+	public Rectangle getBBox() {
 		return this.bBox;
 	}
 
@@ -98,7 +101,7 @@ public class GenaricEvent implements IEvent {
 	 * @see edu.gsu.dmlab.datatypes.interfaces.IEvent#getShape()
 	 */
 	@Override
-	public Point2D[] getShape() {
+	public Polygon getShape() {
 		return this.poly;
 	}
 
