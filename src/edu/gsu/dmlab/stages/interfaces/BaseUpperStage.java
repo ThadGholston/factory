@@ -10,6 +10,8 @@ import edu.gsu.dmlab.graph.Graph;
 import edu.gsu.dmlab.graph.algo.SuccessiveShortestPaths;
 import edu.gsu.dmlab.indexes.interfaces.IEventIndexer;
 import edu.gsu.dmlab.indexes.interfaces.ITrackIndexer;
+import edu.gsu.dmlab.tracking.interfaces.IAppearanceModel;
+import edu.gsu.dmlab.tracking.interfaces.ILocationProbCal;
 import edu.gsu.dmlab.util.interfaces.IPositionPredictor;
 import org.apache.commons.math3.special.Erf;
 import org.apache.commons.math3.util.CombinatoricsUtils;
@@ -20,6 +22,8 @@ import org.joda.time.Seconds;
 import org.opencv.core.Mat;
 import org.opencv.imgproc.Imgproc;
 
+import java.awt.Polygon;
+import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
@@ -27,55 +31,55 @@ import java.util.UUID;
 import static org.opencv.core.CvType.CV_32FC;
 
 public abstract class BaseUpperStage {
-    private
-    HashMap<ITrack, ArrayList<ITrack>> relate;
-    int regionDimension = 64;
-    int regionDivisor = 64;
+	private HashMap<ITrack, ArrayList<ITrack>> relate;
+	int regionDimension = 64;
+	int regionDivisor = 64;
 
+	double secondsToDaysConst = 60.0 * 60.0 * 24.0;
+	ITrackIndexer tracksIdxr;
+	IPositionPredictor predictor;
+	IEventIndexer evntsIdxr;
+	ILocationProbCal enterLocProbCalc;
+	ILocationProbCal exitLocProbCalc;
+	IAppearanceModel appearanceModel;
 
-    double secondsToDaysConst = 60.0 * 60.0 * 24.0;
-    ITrackIndexer tracksIdxr;
-    IPositionPredictor predictor;
-    IEventIndexer evntsIdxr;
+	protected int timeSpan;
+	protected int maxFrameSkip;
+	protected static final int multFactor = 100;
 
-    protected int timeSpan;
-    protected int maxFrameSkip;
-    protected double sameMean;
-    protected double sameStdDev;
-    protected double diffMean;
-    protected double diffStdDev;
-    protected static final int multFactor = 100;
-    protected double[][][] pValues;
-    protected double[] pValMax;
-    protected double[] params;
-    protected double[] histRanges;
-    protected int numSpan;
-    protected int edgeCap = 1; // all edges in graph will have a flow of 1
-    protected int countX;
-    protected final int secondsToDaysConstant = 60 * 60 & 24;
-    private final double sqrt2Pi = Math.sqrt(2 * Math.PI);
+	protected int numSpan;
+	protected int edgeCap = 1; // all edges in graph will have a flow of 1
+	protected int countX;
+	protected final int secondsToDaysConstant = 60 * 60 & 24;
+	private final double sqrt2Pi = Math.sqrt(2 * Math.PI);
 
-    public BaseUpperStage(IPositionPredictor predictor, IEventIndexer evntsIdxr, ITrackIndexer tracksIdxr,
-                          int timeSpan, int numSpan, int maxFrameSkip, double sameMean, double sameStdDev, double diffMean,
-                          double diffStdDev, double[] histRanges, double[] params, double[][][] pValues) {
-        this.predictor = predictor;
-        this.evntsIdxr = evntsIdxr;
-        this.tracksIdxr = tracksIdxr;
-        this.maxFrameSkip = maxFrameSkip;
-        this.timeSpan = timeSpan;
-        this.sameMean = sameMean;
-        this.sameStdDev = sameStdDev;
-        this.diffMean = diffMean;
-        this.diffStdDev = diffStdDev;
-        this.numSpan = numSpan;
-        this.histRanges = histRanges;
-        this.params = params;
-        this.pValues = pValues;
-        this.pValMax = pValMax;
-        this.countX = 0;
-    }
+	public BaseUpperStage(IPositionPredictor predictor, IEventIndexer evntsIdxr, ITrackIndexer tracksIdxr, int timeSpan,
+			int numSpan, int maxFrameSkip, ILocationProbCal enterLocProbCalc, ILocationProbCal exitLocProbCalc,
+			IAppearanceModel appearanceModel) {
 
-    ArrayList<ITrack> process() {
+		if (exitLocProbCalc == null)
+			throw new IllegalArgumentException("Exit Prob Calculator cannot be null.");
+		if (enterLocProbCalc == null)
+			throw new IllegalArgumentException("Enter Prob Calculator cannot be null.");
+		if (appearanceModel == null)
+			throw new IllegalArgumentException("Appearance Model cannot be null.");
+
+		this.exitLocProbCalc = exitLocProbCalc;
+		this.enterLocProbCalc = enterLocProbCalc;
+		this.appearanceModel = appearanceModel;
+
+		this.predictor = predictor;
+		this.evntsIdxr = evntsIdxr;
+		this.tracksIdxr = tracksIdxr;
+		this.maxFrameSkip = maxFrameSkip;
+		this.timeSpan = timeSpan;
+
+		this.numSpan = numSpan;
+
+		this.countX = 0;
+	}
+
+	ArrayList<ITrack> process() {
 
         ArrayList<ITrack> vectOfTracks = this.tracksIdxr.getAll();
 
@@ -104,7 +108,7 @@ public abstract class BaseUpperStage {
                 double span;
                 DateTime startSearch;
                 DateTime endSearch;
-                Point2D[] searchArea;
+                Polygon searchArea;
                 ArrayList<ITrack> potentialTracks;
 
                 int positionOfEvent = currentTrack.indexOf(currentEvent);
@@ -116,8 +120,8 @@ public abstract class BaseUpperStage {
                     startSearch = currentEvent.getTimePeriod().getEnd();
                     endSearch = startSearch.plusSeconds(Seconds.secondsIn(currentEvent.getTimePeriod()).getSeconds());
                     searchArea = this.predictor.getSearchRegion(currentEvent.getBBox(), span);
-                    Rectangle2D searchBox = GeometryUtilities.createBoundingBox(searchArea);
-                    potentialTracks = this.tracksIdxr.filterOnIntervalAndLocation(new Interval(startSearch, endSearch), searchBox);
+                    Rectangle searchBox = searchArea.getBounds();
+                    potentialTracks = this.tracksIdxr.filterOnIntervalAndLocation(new Interval(startSearch, endSearch), searchArea);
 
                 } else {
 
@@ -128,8 +132,8 @@ public abstract class BaseUpperStage {
 
                     float[] motionVect = this.trackMovement(currentTrack);
                     searchArea = this.predictor.getSearchRegion(currentEvent.getBBox(), motionVect, span);
-                    Rectangle2D bbox = GeometryUtilities.createBoundingBox(searchArea);
-                    potentialTracks = this.tracksIdxr.filterOnIntervalAndLocation(new Interval(startSearch, endSearch), bbox);
+                    Rectangle bbox = searchArea.getBounds();
+                    potentialTracks = this.tracksIdxr.filterOnIntervalAndLocation(new Interval(startSearch, endSearch), searchArea);
                 }
 
 
@@ -145,10 +149,10 @@ public abstract class BaseUpperStage {
                         //set the time span to search in as the end of our current track+the
                         //the span of the frame for the last event in our current track being processed.
                         endSearch = startSearch.plusSeconds(Seconds.secondsIn(currentEvent.getTimePeriod()).getSeconds());
-                        Rectangle2D rect = GeometryUtilities.createBoundingBox(searchArea);
+                        Rectangle rect = searchArea.getBounds();
                         searchArea = this.predictor.getSearchRegion(rect, span);
-                        Rectangle2D bbox = GeometryUtilities.createBoundingBox(searchArea);
-                        potentialTracks2 = this.tracksIdxr.filterOnIntervalAndLocation(new Interval(startSearch, endSearch), bbox);
+                        Rectangle bbox = searchArea.getBounds();
+                        potentialTracks2 = this.tracksIdxr.filterOnIntervalAndLocation(new Interval(startSearch, endSearch), searchArea);
                         startSearch = endSearch;
                     } else {
                         Interval tp = getIndex(currentTrack, positionOfEvent - 1).getTimePeriod();
@@ -158,10 +162,10 @@ public abstract class BaseUpperStage {
                         double span2 = Seconds.secondsBetween(endSearch, startSearch).getSeconds() / secondsToDaysConst;
 
                         float[] motionVect = this.trackMovement(currentTrack);
-                        Rectangle2D rect = GeometryUtilities.createBoundingBox(searchArea);
+                        Rectangle rect = searchArea.getBounds();
                         searchArea = this.predictor.getSearchRegion(rect, motionVect, span);
-                        Rectangle2D bbox = GeometryUtilities.createBoundingBox(searchArea);
-                        potentialTracks2 = this.tracksIdxr.filterOnIntervalAndLocation(new Interval(startSearch, endSearch), bbox);
+                        Rectangle bbox = searchArea.getBounds();
+                        potentialTracks2 = this.tracksIdxr.filterOnIntervalAndLocation(new Interval(startSearch, endSearch),searchArea);
                         startSearch = endSearch;
                     }
 
@@ -363,259 +367,126 @@ public abstract class BaseUpperStage {
         return this.tracksIdxr.getAll();
     }
 
-    private double getPoissonProb(IEvent event) {
-        DateTime start = this.evntsIdxr.getFirstTime();
-        DateTime end = start.plusSeconds(this.timeSpan * this.numSpan);
-        Interval timePeriod = new Interval(start, end);
-        int lambda = 0;
-        int delta = 0;
-        if (event.intersects(timePeriod)) {
-            end = start.plus(this.timeSpan * this.numSpan);
-            Interval range = new Interval(start, end);
-            lambda = evntsIdxr.getExpectedChangePerFrame(range);
-            range = event.getTimePeriod();
-            range = new Interval(range.getStart(), range.getEnd().plusSeconds(this.timeSpan * this.numSpan));
-            delta = evntsIdxr.getExpectedChangePerFrame(range);
-        } else {
-            end = this.evntsIdxr.getLastTime();
-            start = end.minusSeconds(this.timeSpan * this.numSpan);
-            Interval range = new Interval(start, end);
-            lambda = evntsIdxr.getExpectedChangePerFrame(range);
-            range = event.getTimePeriod();
-            range = new Interval(range.getStart().minusSeconds(this.timeSpan * this.numSpan), range.getEnd());
-            delta = evntsIdxr.getExpectedChangePerFrame(range);
-        }
-        if (lambda > 0) {
-            double lamPow = Math.pow(lambda, delta);
-            double lamExp = Math.exp(-lambda);
-            double fact = CombinatoricsUtils.factorialDouble(delta);
-            return (lamPow * lamExp) / fact;
-        } else if (lambda == 0 && delta < 2) {
-            return 0.0000001;
-        } else {
-            return .98;
-        }
-    }
+	private double getPoissonProb(IEvent event) {
+		DateTime start = this.evntsIdxr.getFirstTime();
+		DateTime end = start.plusSeconds(this.timeSpan * this.numSpan);
+		Interval timePeriod = new Interval(start, end);
+		int lambda = 0;
+		int delta = 0;
+		if (event.intersects(timePeriod)) {
+			end = start.plus(this.timeSpan * this.numSpan);
+			Interval range = new Interval(start, end);
+			lambda = evntsIdxr.getExpectedChangePerFrame(range);
+			range = event.getTimePeriod();
+			range = new Interval(range.getStart(), range.getEnd().plusSeconds(this.timeSpan * this.numSpan));
+			delta = evntsIdxr.getExpectedChangePerFrame(range);
+		} else {
+			end = this.evntsIdxr.getLastTime();
+			start = end.minusSeconds(this.timeSpan * this.numSpan);
+			Interval range = new Interval(start, end);
+			lambda = evntsIdxr.getExpectedChangePerFrame(range);
+			range = event.getTimePeriod();
+			range = new Interval(range.getStart().minusSeconds(this.timeSpan * this.numSpan), range.getEnd());
+			delta = evntsIdxr.getExpectedChangePerFrame(range);
+		}
+		if (lambda > 0) {
+			double lamPow = Math.pow(lambda, delta);
+			double lamExp = Math.exp(-lambda);
+			double fact = CombinatoricsUtils.factorialDouble(delta);
+			return (lamPow * lamExp) / fact;
+		} else if (lambda == 0 && delta < 2) {
+			return 0.0000001;
+		} else {
+			return .98;
+		}
+	}
 
-    private void getHist(Mat hist, IEvent evnt, boolean left) {
-        if (evnt == null) {
-            Mat m0 = new Mat(1, 1, CV_32FC(3));
-            ArrayList<Mat> listOfMat = new ArrayList<Mat>();
-            listOfMat.add(m0);
-            boolean uniform = true;
-            boolean accumulate = false;
-            //upper bound on ranges are exclusive
-            int channelList[] = {0, 1, 2};
-            int histSize = 15;
-            int histSizes[] = {histSize, histSize, histSize};
-            Imgproc.calcHist(listOfMat, 1, channelList, new Mat(), hist, 3, histSizes, this.histRanges, uniform, accumulate);
-        } else {
-            try {
-                double[][][] paramsVect = getImageParam(evnt, left);
-                Mat m = new Mat(paramsVect.length, paramsVect[0].length, CV_32FC(10));
-                for (int i = 0; i < 10; i++) {
-                    for (int x = 0; x < paramsVect.length; x++) {
-                        for (int y = 0; y < paramsVect[0].length; y++) {
-                            m.get(x, y)[i] = paramsVect[x][y][i];
-                        }
-                    }
-                }
+	protected abstract double prob(ITrack leftTrack, ITrack rightTrack);
 
-                boolean uniform = true;
-                boolean accumulate = false;
+	protected double pEnter(ITrack track) {
+		return this.enterLocProbCalc.calcProb(track.getFirst());
+	}
 
+	protected double pExit(ITrack track) {
+		return this.exitLocProbCalc.calcProb(track.getLast());
+	}
 
-                int histSize = 15;
-                double[] channelList = new double[this.params.length];
-                int[] histSizes = new int[this.params.length];
-                for (int i = 0; i < this.params.length; i++) {
-                    channelList[i] = params[i];
-                    histSizes[i] = histSize;
-                }
-                Imgproc.calcHist(m, 1, channelList, new Mat(), hist, this.params.length, histSizes, this.histRanges, uniform, accumulate);
-            } catch (Exception ex) {
-                Mat m0 = new Mat(1, 1, CV_32FC(3));
-                boolean uniform = true;
-                boolean accumulate = false;
-                //upper bound on ranges are exclusive
+	protected double PAppearance(ITrack leftTrack, ITrack rightTrack) {
+		return this.appearanceModel.calcProbAppearance(leftTrack, rightTrack);
+	}
 
-                int channelList[] = {0, 1, 2};
-                int histSize = 15;
-                int histSizes[] = {histSize, histSize, histSize};
-                Imgproc.calcHist(m0, 1, channelList, new Mat(), hist, 3, histSizes, this.histRanges, uniform, accumulate);
-            }
-        }
-    }
+	protected double PFrameGap(ITrack leftTrack, ITrack rightTrack) {
+		DateTime leftTime = leftTrack.getLast().getTimePeriod().getEnd();
+		DateTime rightTime = rightTrack.getFirst().getTimePeriod().getStart();
+		Interval timePeriod = new Interval(rightTime, leftTime);
+		int span = (int) (leftTrack.getLast().getTimePeriod().toDurationMillis() / 1000);
+		int frameSkip = (int) (timePeriod.toDurationMillis() / 1000) / span;
 
-    private double eventProb(IEvent event, int idx) {
+		if (frameSkip > 0) {
+			double pExitVal = pExit(leftTrack);
+			double pFalseNeg = 1 - (pExitVal);
+			for (int i = 0; i < frameSkip; i++) {
+				pFalseNeg *= pFalseNeg;
+			}
+			return pFalseNeg;
+		} else {
 
-        //for each region in our array of regions, check if they are in the
-        //search area for our next event.
-        Point2D[] scaledSearchArea = new Point2D[4];
-
-        Rectangle2D rectangle = new Rectangle2D();
-        if (event.getType().equals("SG") || event.getType().equals("FL")) {
-            Rectangle2D boundingBox = event.getBBox();
-            int x = (int) boundingBox.getX() / this.regionDivisor;
-            int y = (int) boundingBox.getY() / regionDivisor;
-            int width = (int) boundingBox.getWidth() / regionDivisor;
-            int height = (int) boundingBox.getHeight() / regionDivisor;
-            scaledSearchArea[0] = new Point2D(x, y);
-            scaledSearchArea[1] = new Point2D(x, y + height);
-            scaledSearchArea[2] = new Point2D(x + width, y + height);
-            scaledSearchArea[3] = new Point2D(x + width, y);
-            rectangle.setRect(x, y, width, height);
-        } else {
-            for (Point2D point : event.getShape()) {
-                rectangle.add(new Point2D(point.getX() / regionDivisor, point.getY() / regionDivisor));
-            }
-        }
-
-        double returnValue = 0;
-        double minVal = 0;
-        boolean isSet = false;
-        int count = 0;
-        for (int i = (int) rectangle.getX() - 2; i <= rectangle.getX() + rectangle.getWidth() + 2; i++) {
-            for (int j = (int) rectangle.getY() - 2; j <= rectangle.getY() + rectangle.getHeight() + 2; j++) {
-                if (i >= regionDimension || j >= regionDimension || i < 0 || j < 0) continue;
-                if (GeometryUtilities.isInsideSearchArea(new Point2D(i, j), scaledSearchArea)) {
-                    if (!isSet) {
-                        minVal = this.pValues[i][j][idx];
-                        isSet = true;
-                    } else {
-                        if (this.pValues[i][j][idx] < minVal) {
-                            minVal = this.pValues[i][j][idx];
-                        }
-                    }
-                    returnValue += this.pValues[i][j][idx];
-                    count++;
-                }
-            }
-        }
-
-        if (minVal > 0) {
-            returnValue = minVal / this.pValMax[idx];
-        } else {
-            returnValue = returnValue / count;
-            returnValue = returnValue / this.pValMax[idx];
-        }
-
-        //if we can't calculate a value, who knows what the probability is.  We'll just cal it 50/50.
-        if (returnValue <= 0) {
-            returnValue = 0.5;
-        }
-
-        return returnValue;
-    }
-
-    protected abstract double prob(ITrack leftTrack, ITrack rightTrack);
-
-    private double calcNormProb(double x, double mean, double stdDev) {
-        double val1 = normCDF(x - stdDev, mean, stdDev);
-        double val2 = normCDF(x + stdDev, mean, stdDev);
-        double val = val2 - val1;
-
-        return val;
-    }
-
-    private double normCDF(double x, double mean, double stdDev) {
-        double val = (x - mean) / (stdDev * Math.sqrt(2.0));
-        val = 1.0 + Erf.erf(val);
-        val = val * 0.5;
-        return val;
-    }
-
-    protected double pEnter(ITrack track) {
-        return this.eventProb(track.getFirst(), 0);
-    }
-
-    protected double pExit(ITrack track) {
-        return this.eventProb(track.getLast(), 1);
-    }
-
-    protected double PFrameGap(ITrack leftTrack, ITrack rightTrack) {
-        DateTime leftTime = leftTrack.getLast().getTimePeriod().getEnd();
-        DateTime rightTime = rightTrack.getFirst().getTimePeriod().getStart();
-        Interval timePeriod = new Interval(rightTime, leftTime);
-        int span = (int) (leftTrack.getLast().getTimePeriod().toDurationMillis() / 1000);
-        int frameSkip = (int) (timePeriod.toDurationMillis() / 1000) / span;
-
-        if (frameSkip > 0) {
-            double pExitVal = pExit(leftTrack);
-            double pFalseNeg = 1 - (pExitVal);
-            for (int i = 0; i < frameSkip; i++) {
-                pFalseNeg *= pFalseNeg;
-            }
-            return pFalseNeg;
-        } else {
-
-            return 1.0;
-        }
-    }
-
-    protected double PAppearance(ITrack leftTrack, ITrack rightTrack) {
-        Mat leftFrameHist = new Mat();
-        Mat rightFrameHist = new Mat();
-        getHist(leftFrameHist, leftTrack.getLast(), true);
-        getHist(rightFrameHist, rightTrack.getFirst(), false);
-        double compVal = Imgproc.compareHist(leftFrameHist, rightFrameHist, Imgproc.CV_COMP_BHATTACHARYYA);
-        double sameProb, diffProb;
-        sameProb = calcNormProb(compVal, sameMean, sameStdDev);
-        diffProb = calcNormProb(compVal, diffMean, diffStdDev);
-        return sameProb / (sameProb + diffProb);
-    }
+			return 1.0;
+		}
+	}
 
 
-    protected float[] trackMovement(ITrack track) {
-        double xMovement = 0.0;
-        double yMovement = 0.0;
-        double totalTime = 0.0;
-        int count = 0;
+	protected float[] trackMovement(ITrack track) {
+		double xMovement = 0.0;
+		double yMovement = 0.0;
+		double totalTime = 0.0;
+		int count = 0;
 
-        IEvent event = track.getFirst();
+		IEvent event = track.getFirst();
 
-        float[] motionNormMean = new float[2];
+		float[] motionNormMean = new float[2];
 
-        for (IEvent currentEvent : track) {
-            Point2D locationTwo = currentEvent.getLocation();
-            Point2D locationOne = event.getLocation();
-            xMovement += locationOne.getX() - locationTwo.getX();
-            yMovement += locationOne.getY() - locationTwo.getY();
+		for (IEvent currentEvent : track) {
+			Point2D locationTwo = currentEvent.getLocation();
+			Point2D locationOne = event.getLocation();
+			xMovement += locationOne.getX() - locationTwo.getX();
+			yMovement += locationOne.getY() - locationTwo.getY();
 
-            double span;
-            DateTime startSearch;
-            DateTime endSearch;
+			double span;
+			DateTime startSearch;
+			DateTime endSearch;
 
-            Interval timePeriod = event.getTimePeriod();
-            startSearch = currentEvent.getTimePeriod().getEnd();
-            endSearch = startSearch.plus(currentEvent.getTimePeriod().getStartMillis() - event.getTimePeriod().getStartMillis());
-            span = ((endSearch.minus(startSearch.getMillis())).getMillis() / 1000) / secondsToDaysConstant;
+			Interval timePeriod = event.getTimePeriod();
+			startSearch = currentEvent.getTimePeriod().getEnd();
+			endSearch = startSearch
+					.plus(currentEvent.getTimePeriod().getStartMillis() - event.getTimePeriod().getStartMillis());
+			span = ((endSearch.minus(startSearch.getMillis())).getMillis() / 1000) / secondsToDaysConstant;
 
-            totalTime += span;
-            event = currentEvent;
-        }
+			totalTime += span;
+			event = currentEvent;
+		}
 
-        if (track.size() > 0) {
-            double xMean = xMovement / count;
-            double yMean = yMovement / count;
-            double tMean = totalTime / count;
-            float xMeanPerTime = (float) (xMean / tMean);
-            float yMeanPerTime = (float) (yMean / tMean);
+		if (track.size() > 0) {
+			double xMean = xMovement / count;
+			double yMean = yMovement / count;
+			double tMean = totalTime / count;
+			float xMeanPerTime = (float) (xMean / tMean);
+			float yMeanPerTime = (float) (yMean / tMean);
 
-            motionNormMean[0] = xMeanPerTime;
-            motionNormMean[1] = yMeanPerTime;
-        } else {
-            motionNormMean[0] = 0;
-            motionNormMean[1] = 0;
-        }
-        return motionNormMean;
-    }
+			motionNormMean[0] = xMeanPerTime;
+			motionNormMean[1] = yMeanPerTime;
+		} else {
+			motionNormMean[0] = 0;
+			motionNormMean[1] = 0;
+		}
+		return motionNormMean;
+	}
 
-    protected IEvent getIndex(ITrack track, int position) {
-        try {
-            return track.get(position);
-        } catch (IndexOutOfBoundsException e) {
-            return null;
-        }
-    }
+	protected IEvent getIndex(ITrack track, int position) {
+		try {
+			return track.get(position);
+		} catch (IndexOutOfBoundsException e) {
+			return null;
+		}
+	}
 }

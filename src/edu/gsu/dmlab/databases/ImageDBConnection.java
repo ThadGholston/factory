@@ -1,6 +1,6 @@
 package edu.gsu.dmlab.databases;
 
-import java.awt.geom.Rectangle2D;
+import java.awt.Rectangle;
 import java.sql.Blob;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -117,7 +117,7 @@ public class ImageDBConnection implements IImageDBConnection {
 					}
 				});
 	}
-
+	
 	@Override
 	public float[][][] getImageParam(IEvent event, int wavelength,
 									 boolean leftSide) {
@@ -210,9 +210,9 @@ public class ImageDBConnection implements IImageDBConnection {
 		Timestamp endTime = new Timestamp(key.getEvent().getTimePeriod()
 				.getEndMillis());
 
-		Rectangle2D.Double tmpBbox = key.getEvent().getBBox();
+		Rectangle tmpBbox = key.getEvent().getBBox();
 
-		Rectangle2D.Double rec = new Rectangle2D.Double((tmpBbox.x / this.paramDownSample) - 4,
+		Rectangle rec = new Rectangle((tmpBbox.x / this.paramDownSample) - 4,
 				(tmpBbox.y / this.paramDownSample) - 4,
 				(tmpBbox.width / this.paramDownSample) + 8,
 				(tmpBbox.height / this.paramDownSample) + 8);

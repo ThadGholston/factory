@@ -1,11 +1,13 @@
 package edu.gsu.dmlab.indexes.interfaces;
 
 import edu.gsu.dmlab.datatypes.interfaces.IBaseDataType;
-import edu.gsu.dmlab.geometry.Rectangle2D;
+import edu.gsu.dmlab.geometry.GeometryUtilities;
 
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
+import java.awt.Polygon;
+import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.UUID;
@@ -21,16 +23,14 @@ public abstract class AbsMatIndexer<T extends IBaseDataType> {
 	protected int regionDimension;
 
 	@SuppressWarnings("unchecked")
-	public AbsMatIndexer(ArrayList<T> objectList, int regionDimension,
-			int regionDivisor) throws IllegalArgumentException {
+	public AbsMatIndexer(ArrayList<T> objectList, int regionDimension, int regionDivisor)
+			throws IllegalArgumentException {
 		if (objectList == null)
 			throw new IllegalArgumentException("Object List cannot be null");
 		if (regionDimension < 1)
-			throw new IllegalArgumentException(
-					"Region Dimension cannot be less than 1");
+			throw new IllegalArgumentException("Region Dimension cannot be less than 1");
 		if (regionDivisor < 1)
-			throw new IllegalArgumentException(
-					"Region Divisor cannot be less than 1");
+			throw new IllegalArgumentException("Region Divisor cannot be less than 1");
 
 		this.regionDimension = regionDimension;
 		this.regionDivisor = regionDivisor;
@@ -71,16 +71,17 @@ public abstract class AbsMatIndexer<T extends IBaseDataType> {
 	 */
 
 	@SuppressWarnings("unchecked")
-	public ArrayList<T> filterOnIntervalAndLocation(Interval timePeriod,
-			Rectangle2D boundingBox) {
+	public ArrayList<T> filterOnIntervalAndLocation(Interval timePeriod, Polygon searchArea) {
 		ConcurrentHashMap<UUID, IBaseDataType> results = new ConcurrentHashMap<>();
-		for (int x = (int) boundingBox.getMinX(); x < (int) boundingBox
-				.getMaxX(); x++) {
-			for (int y = (int) boundingBox.getMinY(); y < (int) boundingBox
-					.getMaxY(); y++) {
-				for (IBaseDataType object : searchSpace[x][y]) {
-					if (object.getTimePeriod().overlaps(timePeriod)) {
-						results.put(object.getUUID(), object);
+		Rectangle searchBoundingBox = searchArea.getBounds();
+
+		for (int x = (int) searchBoundingBox.getMinX(); x <= (int) searchBoundingBox.getMaxX(); x++) {
+			for (int y = (int) searchBoundingBox.getMinY(); y <= (int) searchBoundingBox.getMaxY(); y++) {
+				if (searchArea.intersects(x, y, 1, 1)) {
+					for (IBaseDataType object : searchSpace[x][y]) {
+						if (object.getTimePeriod().overlaps(timePeriod)) {
+							results.put(object.getUUID(), object);
+						}
 					}
 				}
 			}

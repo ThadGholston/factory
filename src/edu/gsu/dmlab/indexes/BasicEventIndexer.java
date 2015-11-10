@@ -2,9 +2,7 @@ package edu.gsu.dmlab.indexes;
 
 import edu.gsu.dmlab.factory.interfaces.IIndexFactory;
 import edu.gsu.dmlab.geometry.GeometryUtilities;
-import edu.gsu.dmlab.geometry.Point2D;
 import edu.gsu.dmlab.datatypes.interfaces.IEvent;
-import edu.gsu.dmlab.geometry.Rectangle2D;
 import edu.gsu.dmlab.indexes.interfaces.AbsMatIndexer;
 import edu.gsu.dmlab.indexes.interfaces.IEventIndexer;
 
@@ -15,6 +13,9 @@ import org.joda.time.Interval;
 import java.util.*;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveAction;
+
+import java.awt.Polygon;
+import java.awt.Rectangle;
 
 /**
  * Created by thad on 10/11/15. Edited by Dustin Kempton on 10/28/15
@@ -59,7 +60,8 @@ public class BasicEventIndexer extends AbsMatIndexer<IEvent> implements
 
 		// Sort all of the array lists in the search area matrix
 		RecursiveAction fs = this.factory.getBaseObjectAreaSort(
-				this.searchSpace, 0, 0, this.searchSpace.length, this.searchSpace.length);
+				this.searchSpace, 0, 0, this.searchSpace.length,
+				this.searchSpace.length);
 		ForkJoinPool pool = new ForkJoinPool();
 		pool.invoke(fs);
 	}
@@ -67,8 +69,8 @@ public class BasicEventIndexer extends AbsMatIndexer<IEvent> implements
 	@Override
 	public ArrayList<IEvent> filterOnInterval(Interval timePeriod) {
 		HashMap<UUID, IEvent> results = new HashMap<>();
-		
-		//if the query time actually overlaps then do it
+
+		// if the query time actually overlaps then do it
 		if (this.globalTimePeriod.overlaps(timePeriod)) {
 
 			Interval intersection = this.globalTimePeriod.overlap(timePeriod);
@@ -82,8 +84,8 @@ public class BasicEventIndexer extends AbsMatIndexer<IEvent> implements
 				}
 			}
 		}
-		
-		//return the values
+
+		// return the values
 		Collection<IEvent> coll = results.values();
 		ArrayList<IEvent> list = new ArrayList<IEvent>();
 		list.addAll(0, coll);
@@ -97,15 +99,13 @@ public class BasicEventIndexer extends AbsMatIndexer<IEvent> implements
 	}
 
 	private void insertEventIntoSearchSpace(IEvent event) {
-		Point2D[] shape = event.getShape();
-		Point2D[] searchArea = GeometryUtilities.getScaledSearchArea(shape,
+		Polygon shape = event.getShape();
+		Polygon scaledSahpe = GeometryUtilities.scalePolygon(shape,
 				regionDivisor);
-		Rectangle2D boundingBox = GeometryUtilities
-				.createBoundingBox(searchArea);
+		Rectangle boundingBox = scaledSahpe.getBounds();
 		for (int x = (int) boundingBox.getMinX(); x < boundingBox.getMaxX(); x++) {
 			for (int y = (int) boundingBox.getMinY(); y < boundingBox.getMaxY(); y++) {
-				if (GeometryUtilities.isInsideSearchArea(new Point2D(x, y),
-						searchArea)) {
+				if (scaledSahpe.contains(x, y)) {
 					searchSpace[x][y].add(event);
 				}
 			}

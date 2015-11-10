@@ -6,6 +6,8 @@ import org.junit.Test;
 
 import static org.mockito.Mockito.*;
 
+import java.awt.Polygon;
+import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.UUID;
 import java.util.concurrent.RecursiveAction;
@@ -15,8 +17,6 @@ import org.joda.time.Interval;
 
 import edu.gsu.dmlab.datatypes.interfaces.IEvent;
 import edu.gsu.dmlab.factory.interfaces.IIndexFactory;
-import edu.gsu.dmlab.geometry.Point2D;
-import edu.gsu.dmlab.geometry.Rectangle2D;
 import edu.gsu.dmlab.indexes.BasicEventIndexer;
 import edu.gsu.dmlab.indexes.interfaces.AbsMatIndexer;
 
@@ -123,19 +123,22 @@ public class BasicEventIndexerTests {
 		Interval itvl = new Interval(0, 5000);
 		when(obj.getTimePeriod()).thenReturn(itvl);
 		when(obj.getUUID()).thenReturn(new UUID(4, 2));
-		Rectangle2D rect = new Rectangle2D(1, 1, 2, 2);
+		Rectangle rect = new Rectangle(1, 1, 2, 2);
 		when(obj.getBBox()).thenReturn(rect);
-		Point2D[] geom = { new Point2D(1, 1), new Point2D(3, 1),
-				new Point2D(3, 3), new Point2D(1, 3) };
+		int[] xArr = { 1, 2, 2, 1 };
+		int[] yArr = { 1, 1, 3, 3 };
+		Polygon geom = new Polygon(xArr, yArr, xArr.length);
 		when(obj.getShape()).thenReturn(geom);
 		int regionDim = 4;
 		int regionDiv = 1;
 		AbsMatIndexer<IEvent> idxr = new BasicEventIndexer(lst, regionDim,
 				regionDiv, dur, factory);
 
-		Rectangle2D rect2 = new Rectangle2D(3, 3, 1, 1);
-		ArrayList<IEvent> retList = idxr.filterOnIntervalAndLocation(itvl,
-				rect2);
+		int[] xArr2 = { 3, 4, 4, 3 };
+		int[] yArr2 = { 3, 3, 4, 4 };
+		Polygon poly = new Polygon(xArr2, yArr2, xArr2.length);
+		ArrayList<IEvent> retList = idxr
+				.filterOnIntervalAndLocation(itvl, poly);
 		assertTrue(retList.size() == 0);
 
 	}
@@ -163,10 +166,11 @@ public class BasicEventIndexerTests {
 		Interval itvl = new Interval(0, 5000);
 		when(obj.getTimePeriod()).thenReturn(itvl);
 		when(obj.getUUID()).thenReturn(new UUID(4, 2));
-		Rectangle2D rect = new Rectangle2D(1, 1, 2, 2);
+		Rectangle rect = new Rectangle(1, 1, 2, 2);
 		when(obj.getBBox()).thenReturn(rect);
-		Point2D[] geom = { new Point2D(1, 1), new Point2D(3, 1),
-				new Point2D(3, 3), new Point2D(1, 3) };
+		int[] xArr = { 1, 3, 3, 1 };
+		int[] yArr = { 1, 1, 3, 3 };
+		Polygon geom = new Polygon(xArr, yArr, xArr.length);
 		when(obj.getShape()).thenReturn(geom);
 
 		int regionDim = 4;
@@ -174,9 +178,12 @@ public class BasicEventIndexerTests {
 		AbsMatIndexer<IEvent> idxr = new BasicEventIndexer(lst, regionDim,
 				regionDiv, dur, factory);
 
-		Rectangle2D rect2 = new Rectangle2D(1, 1, 1, 1);
-		ArrayList<IEvent> retList = idxr.filterOnIntervalAndLocation(itvl,
-				rect2);
+
+		int[] xArr2 = {1,2,2,1};
+		int[] yArr2 = {1,1,2,2};
+		Polygon poly = new Polygon(xArr2, yArr2, xArr2.length);
+		ArrayList<IEvent> retList = idxr
+				.filterOnIntervalAndLocation(itvl, poly);
 		assertTrue(retList.size() == 1);
 
 	}
@@ -204,10 +211,11 @@ public class BasicEventIndexerTests {
 		Interval itvl = new Interval(0, 5000);
 		when(obj.getTimePeriod()).thenReturn(itvl);
 		when(obj.getUUID()).thenReturn(new UUID(4, 2));
-		Rectangle2D rect = new Rectangle2D(1, 1, 2, 2);
+		Rectangle rect = new Rectangle(1, 1, 2, 2);
 		when(obj.getBBox()).thenReturn(rect);
-		Point2D[] geom = { new Point2D(1, 1), new Point2D(3, 1),
-				new Point2D(3, 3), new Point2D(1, 3) };
+		int[] xArr = { 1, 3, 3, 1 };
+		int[] yArr = { 1, 1, 3, 3 };
+		Polygon geom = new Polygon(xArr, yArr, xArr.length);
 		when(obj.getShape()).thenReturn(geom);
 
 		int regionDim = 4;
@@ -215,10 +223,12 @@ public class BasicEventIndexerTests {
 		AbsMatIndexer<IEvent> idxr = new BasicEventIndexer(lst, regionDim,
 				regionDiv, dur, factory);
 
-		Rectangle2D rect2 = new Rectangle2D(1, 1, 1, 1);
 		Interval itvl2 = new Interval(6000, 7000);
-		ArrayList<IEvent> retList = idxr.filterOnIntervalAndLocation(itvl2,
-				rect2);
+		int[] xArr2 = {1,2,2,1};
+		int[] yArr2 = {1,1,2,2};
+		Polygon poly = new Polygon(xArr2, yArr2, xArr2.length);
+		ArrayList<IEvent> retList = idxr
+				.filterOnIntervalAndLocation(itvl2, poly);
 		assertTrue(retList.size() == 0);
 
 	}
@@ -246,10 +256,11 @@ public class BasicEventIndexerTests {
 		Interval itvl = new Interval(0, 5000);
 		when(obj.getTimePeriod()).thenReturn(itvl);
 		when(obj.getUUID()).thenReturn(new UUID(4, 2));
-		Rectangle2D rect = new Rectangle2D(1, 1, 2, 2);
+		Rectangle rect = new Rectangle(1, 1, 2, 2);
 		when(obj.getBBox()).thenReturn(rect);
-		Point2D[] geom = { new Point2D(1, 1), new Point2D(3, 1),
-				new Point2D(3, 3), new Point2D(1, 3) };
+		int[] xArr = { 1, 3, 3, 1 };
+		int[] yArr = { 1, 1, 3, 3 };
+		Polygon geom = new Polygon(xArr, yArr, xArr.length);
 		when(obj.getShape()).thenReturn(geom);
 
 		int regionDim = 4;
@@ -286,10 +297,11 @@ public class BasicEventIndexerTests {
 		Interval itvl = new Interval(0, 5000);
 		when(obj.getTimePeriod()).thenReturn(itvl);
 		when(obj.getUUID()).thenReturn(new UUID(4, 2));
-		Rectangle2D rect = new Rectangle2D(1, 1, 2, 2);
+		Rectangle rect = new Rectangle(1, 1, 2, 2);
 		when(obj.getBBox()).thenReturn(rect);
-		Point2D[] geom = { new Point2D(1, 1), new Point2D(3, 1),
-				new Point2D(3, 3), new Point2D(1, 3) };
+		int[] xArr = { 1, 3, 3, 1 };
+		int[] yArr = { 1, 1, 3, 3 };
+		Polygon geom = new Polygon(xArr, yArr, xArr.length);
 		when(obj.getShape()).thenReturn(geom);
 
 		int regionDim = 4;
