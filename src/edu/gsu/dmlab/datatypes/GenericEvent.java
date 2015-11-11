@@ -1,6 +1,6 @@
 /**
  *
- * File: GenaricEvent.java is a genaric event type used to represent a single
+ * File: GenaricEvent.java is a generic event type used to represent a single
  * detection of a solar event taken from HEK.  
  * @author Dustin Kempton
  * @version 05/12/2015 
@@ -163,53 +163,53 @@ public class GenericEvent implements IEvent {
 		return this.getTimePeriod().isAfter(obj.getTimePeriod());
 	}
 
-//	/*
-//	 * (non-Javadoc)
-//	 *
-//	 * @see edu.gsu.dmlab.datatypes.interfaces.IEvent#getPrevious()
-//	 */
-//	@Override
-//	public IEvent getPrevious() {
-//		return this.previous;
-//	}
-//
-//	/*
-//	 * (non-Javadoc)
-//	 *
-//	 * @see
-//	 * edu.gsu.dmlab.datatypes.interfaces.IEvent#setPrevious(edu.gsu.dmlab.datatypes
-//	 * .interfaces.IEvent)
-//	 */
-//	@Override
-//	public void setPrevious(IEvent event) {
-//		if (this.previous == null) {
-//			this.previous = event;
-//		}
-//	}
-//
-//	/*
-//	 * (non-Javadoc)
-//	 *
-//	 * @see edu.gsu.dmlab.datatypes.interfaces.IEvent#getNext()
-//	 */
-//	@Override
-//	public IEvent getNext() {
-//		return this.next;
-//	}
-//
-//	/*
-//	 * (non-Javadoc)
-//	 *
-//	 * @see
-//	 * edu.gsu.dmlab.datatypes.interfaces.IEvent#setNext(edu.gsu.dmlab.datatypes
-//	 * .interfaces.IEvent)
-//	 */
-//	@Override
-//	public void setNext(IEvent event) {
-//		if (this.next == null) {
-//			this.next = event;
-//		}
-//	}
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see edu.gsu.dmlab.datatypes.interfaces.IEvent#getPrevious()
+	 */
+	@Override
+	public IEvent getPrevious() {
+		return this.previous;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see
+	 * edu.gsu.dmlab.datatypes.interfaces.IEvent#setPrevious(edu.gsu.dmlab.datatypes
+	 * .interfaces.IEvent)
+	 */
+	@Override
+	public void setPrevious(IEvent event) {
+		if (this.previous == null) {
+			this.previous = event;
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see edu.gsu.dmlab.datatypes.interfaces.IEvent#getNext()
+	 */
+	@Override
+	public IEvent getNext() {
+		return this.next;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see
+	 * edu.gsu.dmlab.datatypes.interfaces.IEvent#setNext(edu.gsu.dmlab.datatypes
+	 * .interfaces.IEvent)
+	 */
+	@Override
+	public void setNext(IEvent event) {
+		if (this.next == null) {
+			this.next = event;
+		}
+	}
 
 	/*
 	 * (non-Javadoc)

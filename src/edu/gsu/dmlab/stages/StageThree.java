@@ -1,82 +1,57 @@
+/**
+ * File StageThree.java is the third stage in the iterative tracking 
+ * algorithm of Kempton et al.,  http://dx.doi.org/10.1016/j.ascom.2015.10.005.
+ * 
+ * 
+ * @author Thaddeus Gholston
+ * @version 09/23/15
+ * @owner Data Mining Lab, Georgia State University
+ */
 package edu.gsu.dmlab.stages;
 
-import edu.gsu.dmlab.datatypes.interfaces.IEvent;
 import edu.gsu.dmlab.datatypes.interfaces.ITrack;
-import edu.gsu.dmlab.indexes.interfaces.IEventIndexer;
+import edu.gsu.dmlab.factory.interfaces.IGraphProblemFactory;
 import edu.gsu.dmlab.indexes.interfaces.ITrackIndexer;
 import edu.gsu.dmlab.stages.interfaces.BaseUpperStage;
-import edu.gsu.dmlab.util.interfaces.IPositionPredictor;
-import org.apache.commons.configuration.Configuration;
+import edu.gsu.dmlab.tracking.interfaces.IAppearanceModel;
+import edu.gsu.dmlab.tracking.interfaces.IFrameSkipModel;
+import edu.gsu.dmlab.tracking.interfaces.IMotionModel;
+import edu.gsu.dmlab.util.interfaces.ISearchAreaProducer;
 
-import java.awt.geom.Point2D;
-
-/**
- * Created by thad on 9/23/15.
- */
 public class StageThree extends BaseUpperStage {
 
-    private int maxFrameSkip;
+	IAppearanceModel appearanceModel;
+	IFrameSkipModel skipModel;
+	IMotionModel motionModel;
 
-    public StageThree(IPositionPredictor predictor, IEventIndexer evntsIdxr, ITrackIndexer tracksIdxr,
-                      int timeSpan, int numSpan, int maxFrameSkip, double sameMean, double sameStdDev, double diffMean,
-                      double diffStdDev, double[] histRanges, double[] params, double[][][] pValues) {
-        super(predictor, evntsIdxr, tracksIdxr,
-                timeSpan, numSpan, maxFrameSkip, sameMean, sameStdDev, diffMean,
-                diffStdDev, histRanges, params, pValues);
-    }
+	public StageThree(ISearchAreaProducer predictor, ITrackIndexer tracksIdxr,
+			IAppearanceModel appearanceModel, IFrameSkipModel skipModel,
+			IMotionModel motionModel, IGraphProblemFactory graphFactory,
+			int maxFrameSkip) {
+		super(predictor, graphFactory, tracksIdxr, maxFrameSkip);
 
-    protected double prob(ITrack leftTrack, ITrack rightTrack) {
-        double p = 1;
-        p *= this.PAppearance(leftTrack, rightTrack);
-        p *= this.PFrameGap(leftTrack, rightTrack);
-        p *= this.PMotionModel(leftTrack, rightTrack);
+		if (appearanceModel == null)
+			throw new IllegalArgumentException(
+					"Appearance Model cannot be null.");
+		if (skipModel == null)
+			throw new IllegalArgumentException(
+					"Frame Skip Model cannot be null.");
+		if (motionModel == null)
+			throw new IllegalArgumentException("Motion Model cannot be null.");
 
-        return p;
-    }
+		this.appearanceModel = appearanceModel;
+		this.motionModel = motionModel;
+		this.skipModel = skipModel;
+	}
 
-    double PMotionModel(ITrack leftTrack, ITrack rightTrack) {
-        double[] leftMotion = trackNormalizedMeanMovement(leftTrack);
-        double[] rightMotion = trackNormalizedMeanMovement(rightTrack);
+	@Override
+	protected double prob(ITrack leftTrack, ITrack rightTrack) {
+		double p = 1;
+		p *= this.appearanceModel.calcProbAppearance(leftTrack, rightTrack);
+		p *= this.skipModel.getSkipProb(leftTrack, rightTrack);
+		p *= this.motionModel.calcProbMotion(leftTrack, rightTrack);
 
-        double xdiff = leftMotion[0] - rightMotion[0];
-        double ydiff = leftMotion[1] - rightMotion[1];
+		return p;
+	}
 
-        double val = (xdiff * xdiff) + (ydiff * ydiff);
-        val = Math.sqrt(val);
-        double prob = 1.0 - (0.5 * val);
-        return prob;
-    }
-
-    private double[] trackNormalizedMeanMovement(ITrack track) {
-        double xMovement = 0.0;
-        double yMovement = 0.0;
-        IEvent event = track.getFirst();
-        for (IEvent currentEvent : track) {
-            Point2D.Double currentlocation = currentEvent.getLocation();
-            Point2D.Double firstLocation = event.getLocation();
-            xMovement += currentlocation.getX() - firstLocation.getX();
-            yMovement += currentlocation.getY() - firstLocation.getY();
-            event = currentEvent;
-        }
-
-        double[] motionNormMean = new double[2];
-
-        if (track.size() > 0) {
-            //average the movement
-            double xMean = xMovement / track.size();
-            double yMean = yMovement / track.size();
-
-            //Now normalize the movement
-            double val = (xMean * xMean) + (yMean * yMean);
-            val = Math.sqrt(val);
-
-            //Store in array for return
-            motionNormMean[0] = xMean / val;
-            motionNormMean[1] = yMean / val;
-        } else {
-            motionNormMean[0] = 0;
-            motionNormMean[1] = 0;
-        }
-        return motionNormMean;
-    }
 }
