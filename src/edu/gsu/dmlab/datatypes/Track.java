@@ -11,12 +11,14 @@ package edu.gsu.dmlab.datatypes;
 import java.util.*;
 
 import edu.gsu.dmlab.datatypes.interfaces.IBaseDataType;
+
 import org.joda.time.Interval;
 
 import edu.gsu.dmlab.datatypes.interfaces.IEvent;
 import edu.gsu.dmlab.datatypes.interfaces.ITrack;
 
 
+@SuppressWarnings("serial")
 public class Track extends ArrayList<IEvent> implements ITrack {
 
     private UUID uniqueId = null;

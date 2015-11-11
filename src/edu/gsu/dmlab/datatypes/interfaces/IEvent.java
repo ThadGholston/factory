@@ -58,35 +58,35 @@ public interface IEvent extends IBaseDataType {
 	 */
 	EventType getType();
 
-//	/**
-//	 * Returns a pointer to the event detection that is considered the previous detection of the
-//	 * same object.
-//	 * @return	pointer to the previous detection in the chain.
-//	 */
-//	IEvent getPrevious();
-//
-//	/**
-//	 * Sets a pointer to the event detection that is considered the previous detection of the
-//	 * same object.  This method only changes the pointer from null to a non-null value.
-//	 * Once it is set, it does not change with the next call.
-//	 * @param event	the previous detection in the chain
-//	 */
-//	void setPrevious(IEvent event);
-//
-//	/**
-//	 * Returns a pointer to the event detection that is considered the next detection
-//	 * of the same object.
-//	 * @return	a pointer to the next detection in the chain.
-//	 */
-//	IEvent getNext();
-//
-//	/**
-//	 * Sets a pointer to the event detection that is considered the next detection of the
-//	 * same object. This method only changes the pointer from null to a non-null value.
-//	 * Once it is set, it does not change with the next call.
-//	 * @param event	the next detection in the chain
-//	 */
-//	void setNext(IEvent event);
+	/**
+	 * Returns a pointer to the event detection that is considered the previous detection of the
+	 * same object.
+	 * @return	pointer to the previous detection in the chain.
+	 */
+	IEvent getPrevious();
+
+	/**
+	 * Sets a pointer to the event detection that is considered the previous detection of the
+	 * same object.  This method only changes the pointer from null to a non-null value.
+	 * Once it is set, it does not change with the next call.
+	 * @param event	the previous detection in the chain
+	 */
+	void setPrevious(IEvent event);
+
+	/**
+	 * Returns a pointer to the event detection that is considered the next detection
+	 * of the same object.
+	 * @return	a pointer to the next detection in the chain.
+	 */
+	IEvent getNext();
+
+	/**
+	 * Sets a pointer to the event detection that is considered the next detection of the
+	 * same object. This method only changes the pointer from null to a non-null value.
+	 * Once it is set, it does not change with the next call.
+	 * @param event	the next detection in the chain
+	 */
+	void setNext(IEvent event);
 
 	/**
 	 * Returns a unique identifier for this object inside this program.  This was
