@@ -139,7 +139,6 @@ public class ForkAreaSortTest {
 				if(area[i][j].get(0)==d2)correctCount++;
 			}
 		}
-		System.out.println(correctCount);
 		assertTrue(correctCount==size*size);
 	}
 	
@@ -178,7 +177,6 @@ public class ForkAreaSortTest {
 				if(area[i][j].get(0)==d2)correctCount++;
 			}
 		}
-		System.out.println(correctCount);
 		assertTrue(correctCount==size*size);
 	}
 }

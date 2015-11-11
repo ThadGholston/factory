@@ -6,13 +6,15 @@
  * up to the right.
  *
  * @author Dustin Kempton
- * @version 06/03/2015 
+ * @version 10/10/2015 
  * @Owner Data Mining Lab, Georgia State University
  */
 package edu.gsu.dmlab.util;
 
+import java.awt.Polygon;
+import java.awt.Rectangle;
+
 import edu.gsu.dmlab.geometry.Point2D;
-import edu.gsu.dmlab.geometry.Rectangle2D;
 import edu.gsu.dmlab.util.interfaces.IPositionPredictor;
 
 public class TrapezoidPositionPredictor implements IPositionPredictor {
@@ -32,7 +34,6 @@ public class TrapezoidPositionPredictor implements IPositionPredictor {
 	 */
 	@Override
 	public Point2D getPredictedPos(Point2D point, double span) {
-		// TODO Auto-generated method stub
 		Point2D HGSCoord = CoordinateSystemConverter.convertPixXYToHGS(point);
 		HGSCoord = this.calcNewLoc(HGSCoord, span);
 		return CoordinateSystemConverter.convertHGSToPixXY(HGSCoord);
@@ -40,8 +41,8 @@ public class TrapezoidPositionPredictor implements IPositionPredictor {
 
 	/**
 	 * getPredictedPos :returns the predicted position of all the points in the
-	 * objectList, for the change in time,based upon the latitude of the point and the
-	 * solar rotation at that latitude.
+	 * objectList, for the change in time,based upon the latitude of the point
+	 * and the solar rotation at that latitude.
 	 *
 	 * @param poly
 	 *            :the objectList of point to calculate the new position of.
@@ -50,103 +51,142 @@ public class TrapezoidPositionPredictor implements IPositionPredictor {
 	 * @return :a new objectList of points with the new coordinates
 	 */
 	@Override
-	public Point2D[] getPredictedPos(Point2D[] poly, double span) {
-		Point2D[] outArr = new Point2D[poly.length];
-		for (int i = 0; i < poly.length; i++) {
-			outArr[i] = this.getPredictedPos(poly[i], span);
+	public Polygon getPredictedPos(Polygon poly, double span) {
+
+		int[] xArr = new int[poly.xpoints.length];
+		int[] yArr = new int[poly.xpoints.length];
+		for (int i = 0; i < poly.xpoints.length; i++) {
+			Point2D origPoint = new Point2D(poly.xpoints[i], poly.ypoints[i]);
+			Point2D shiftedPoint = this.getPredictedPos(origPoint, span);
+			xArr[i] = (int) shiftedPoint.x;
+			yArr[i] = (int) shiftedPoint.y;
 		}
-		return outArr;
+
+		Polygon outPoly = new Polygon(xArr, yArr, xArr.length);
+		return outPoly;
 	}
 
 	@Override
-	public Point2D[] getPredictedPos(Point2D[] poly, float[] movementVect,
-								   double span) {
+	public Polygon getPredictedPos(Polygon poly, float[] movementVect, double span) {
 
-		Point2D[] outArr = new Point2D[poly.length];
 		double xMove = movementVect[0] * span;
 		double yMove = movementVect[1] * span;
 
-		for (int i = 0; i < poly.length; i++) {
-			outArr[i] = new Point2D(poly[i].x + xMove, poly[i].y + yMove);
+		int[] xArr = new int[poly.xpoints.length];
+		int[] yArr = new int[poly.xpoints.length];
+		for (int i = 0; i < poly.xpoints.length; i++) {
+			xArr[i] = (int) (poly.xpoints[i] + xMove);
+			yArr[i] = (int) (poly.ypoints[i] + yMove);
 		}
-		return outArr;
+
+		Polygon outPoly = new Polygon(xArr, yArr, xArr.length);
+		return outPoly;
 	}
 
 	@Override
-	public Point2D[] getSearchRegion(Rectangle2D bBox, double span) {
+	public Polygon getSearchRegion(Rectangle bBox, double span) {
 
 		Point2D oldCorner = new Point2D(bBox.x, bBox.y);
 		Point2D rotatedCorner = this.getPredictedPos(oldCorner, span);
 
-		Point2D rotatedLowerLeft = new Point2D(rotatedCorner.x, rotatedCorner.y
-				+ bBox.height);
+		Point2D rotatedLowerLeft = new Point2D(rotatedCorner.x, rotatedCorner.y + bBox.height);
 
 		Point2D upperLeft = rotatedCorner;
 		Point2D lowerLeft = rotatedLowerLeft;
 
-		Point2D upperCenterRight = new Point2D((rotatedCorner.x + bBox.width),
-				rotatedCorner.y);
-		Point2D lowerCenterRight = new Point2D((rotatedLowerLeft.x + bBox.width),
-				rotatedLowerLeft.y);
+		Point2D upperCenterRight = new Point2D((rotatedCorner.x + bBox.width), rotatedCorner.y);
+		Point2D lowerCenterRight = new Point2D((rotatedLowerLeft.x + bBox.width), rotatedLowerLeft.y);
 
 		double length = upperCenterRight.x - upperLeft.x;
 		double addedHeight = Math.tan(Math.toRadians(THETA)) * length;
 
-		Point2D lowerRight = new Point2D(lowerCenterRight.x, lowerCenterRight.y
-				- addedHeight);
-		Point2D upperRight = new Point2D(upperCenterRight.x, upperCenterRight.y
-				+ addedHeight);
+		Point2D lowerRight = new Point2D(lowerCenterRight.x, lowerCenterRight.y - addedHeight);
+		Point2D upperRight = new Point2D(upperCenterRight.x, upperCenterRight.y + addedHeight);
 
-		Point2D[] out = new Point2D[7];
-		out[0] = upperLeft;
-		out[1] = lowerLeft;
-		out[2] = lowerRight;
-		out[3] = lowerCenterRight;
-		out[4] = upperCenterRight;
-		out[5] = upperRight;
-		out[6] = upperLeft;
+		int[] searchXArr = new int[6];
+		int[] searchYArr = new int[6];
 
+		// out.add(upperLeft);
+		searchXArr[0] = (int) upperLeft.x;
+		searchYArr[0] = (int) upperLeft.y;
+
+		// out.add(lowerLeft);
+		searchXArr[1] = (int) lowerLeft.x;
+		searchYArr[1] = (int) lowerLeft.y;
+
+		// out.add(lowerRight);
+		searchXArr[2] = (int) lowerRight.x;
+		searchYArr[2] = (int) lowerRight.y;
+
+		// out.add(lowerCenterRight);
+		searchXArr[3] = (int) lowerCenterRight.x;
+		searchYArr[3] = (int) lowerCenterRight.y;
+
+		//out.add(upperCenterRight);
+		searchXArr[4] = (int) upperCenterRight.x;
+		searchYArr[4] = (int) upperCenterRight.y;
+		
+		//out.add(upperRight);
+		searchXArr[5] = (int) upperRight.x;
+		searchYArr[5] = (int) upperRight.y;
+		
+
+		Polygon out = new Polygon(searchXArr, searchYArr, searchXArr.length);
 		return out;
 	}
 
 	@Override
-	public Point2D[] getSearchRegion(Rectangle2D bBox, float[] movementVect, double span) {
+	public Polygon getSearchRegion(Rectangle bBox, float[] movementVect, double span) {
 
 		double xMove = movementVect[0] * span;
 		double yMove = movementVect[1] * span;
 
 		Point2D oldCorner = new Point2D(bBox.x, bBox.y);
-		Point2D rotatedCorner = new Point2D(oldCorner.x + xMove, oldCorner.y
-				+ yMove);
+		Point2D rotatedCorner = new Point2D(oldCorner.x + xMove, oldCorner.y + yMove);
 
-		Point2D rotatedLowerLeft = new Point2D(rotatedCorner.x, rotatedCorner.y
-				+ bBox.height);
+		Point2D rotatedLowerLeft = new Point2D(rotatedCorner.x, rotatedCorner.y + bBox.height);
 
 		Point2D upperLeft = rotatedCorner;
 		Point2D lowerLeft = rotatedLowerLeft;
 
-		Point2D upperCenterRight = new Point2D((rotatedCorner.x + bBox.width),
-				rotatedCorner.y);
-		Point2D lowerCenterRight = new Point2D((rotatedLowerLeft.x + bBox.width),
-				rotatedLowerLeft.y);
+		Point2D upperCenterRight = new Point2D((rotatedCorner.x + bBox.width), rotatedCorner.y);
+		Point2D lowerCenterRight = new Point2D((rotatedLowerLeft.x + bBox.width), rotatedLowerLeft.y);
 
 		double length = upperCenterRight.x - upperLeft.x;
 		double addedHeight = Math.tan(Math.toRadians(THETA)) * length;
 
-		Point2D lowerRight = new Point2D(lowerCenterRight.x, lowerCenterRight.y
-				- addedHeight);
-		Point2D upperRight = new Point2D(upperCenterRight.x, upperCenterRight.y
-				+ addedHeight);
+		Point2D lowerRight = new Point2D(lowerCenterRight.x, lowerCenterRight.y - addedHeight);
+		Point2D upperRight = new Point2D(upperCenterRight.x, upperCenterRight.y + addedHeight);
 
-		Point2D[] out = new Point2D[7];
-		out[0] = upperLeft;
-		out[1] = lowerLeft;
-		out[2] = lowerRight;
-		out[3] = lowerCenterRight;
-		out[4] = upperCenterRight;
-		out[5] = upperRight;
-		out[6] = upperLeft;
+		int[] searchXArr = new int[6];
+		int[] searchYArr = new int[6];
 
+		// out.add(upperLeft);
+		searchXArr[0] = (int) upperLeft.x;
+		searchYArr[0] = (int) upperLeft.y;
+
+		// out.add(lowerLeft);
+		searchXArr[1] = (int) lowerLeft.x;
+		searchYArr[1] = (int) lowerLeft.y;
+
+		// out.add(lowerRight);
+		searchXArr[2] = (int) lowerRight.x;
+		searchYArr[2] = (int) lowerRight.y;
+
+		// out.add(lowerCenterRight);
+		searchXArr[3] = (int) lowerCenterRight.x;
+		searchYArr[3] = (int) lowerCenterRight.y;
+
+		//out.add(upperCenterRight);
+		searchXArr[4] = (int) upperCenterRight.x;
+		searchYArr[4] = (int) upperCenterRight.y;
+		
+		//out.add(upperRight);
+		searchXArr[5] = (int) upperRight.x;
+		searchYArr[5] = (int) upperRight.y;
+		
+
+		Polygon out = new Polygon(searchXArr, searchYArr, searchXArr.length);
 		return out;
 	}
 
@@ -162,10 +202,7 @@ public class TrapezoidPositionPredictor implements IPositionPredictor {
 	 * @return : point with new HGS coordinates
 	 */
 	Point2D calcNewLoc(Point2D pointIn, double days) {
-		double x = pointIn.x
-				+ days
-				* (14.44 - 3.0 * Math.pow(Math.sin(Math.toDegrees(pointIn.y)),
-				2.0));
+		double x = pointIn.x + days * (14.44 - 3.0 * Math.pow(Math.sin(Math.toDegrees(pointIn.y)), 2.0));
 		pointIn.x = x;
 		return pointIn;
 	}
