@@ -3,8 +3,8 @@
  * algorithm of Kempton et al.,  http://dx.doi.org/10.1016/j.ascom.2015.10.005.
  * 
  * 
- * @author Thaddeus Gholston
- * @version 09/23/15
+ * @author Thaddeus Gholston : Major Revisions by Dustin Kempton
+ * @version 11/12/15
  * @owner Data Mining Lab, Georgia State University
  */
 package edu.gsu.dmlab.stages.interfaces;
@@ -19,7 +19,6 @@ import edu.gsu.dmlab.indexes.interfaces.ITrackIndexer;
 import edu.gsu.dmlab.util.Utility;
 import edu.gsu.dmlab.util.interfaces.ISearchAreaProducer;
 
-import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Seconds;
 
@@ -39,16 +38,13 @@ public abstract class BaseUpperStage implements IProcessingStage {
 
 	protected int countX;
 
-	public BaseUpperStage(ISearchAreaProducer predictor,
-			IGraphProblemFactory graphFactory, ITrackIndexer tracksIdxr,
+	public BaseUpperStage(ISearchAreaProducer predictor, IGraphProblemFactory graphFactory, ITrackIndexer tracksIdxr,
 			int maxFrameSkip) {
 
 		if (predictor == null)
-			throw new IllegalArgumentException(
-					"Search Area Producer cannot be null.");
+			throw new IllegalArgumentException("Search Area Producer cannot be null.");
 		if (graphFactory == null)
-			throw new IllegalArgumentException(
-					"Graph Problem Factory cannot be null.");
+			throw new IllegalArgumentException("Graph Problem Factory cannot be null.");
 
 		this.predictor = predictor;
 		this.tracksIdxr = tracksIdxr;
@@ -81,122 +77,71 @@ public abstract class BaseUpperStage implements IProcessingStage {
 				IEvent currentEvent = currentTrack.getLast();
 
 				double span;
-				DateTime startSearch;
-				DateTime endSearch;
 				Polygon searchArea;
 				ArrayList<ITrack> potentialTracks;
 
-				int positionOfEvent = currentTrack.indexOf(currentEvent);
-				if (getIndex(currentTrack, positionOfEvent - 1) == null
-						|| getIndex(currentTrack, positionOfEvent - 2) == null) {
-					// get the search area to find tracks that may belong linked
-					// to the current one being processed
-					span = Seconds.secondsIn(currentEvent.getTimePeriod())
-							.getSeconds() / Utility.SECONDS_TO_DAYS;
-					// set the time span to search in as the end of our current
-					// track+the
-					// the span of the frame for the last event in our current
-					// track being processed.
-					startSearch = currentEvent.getTimePeriod().getEnd();
-					endSearch = startSearch.plusSeconds(Seconds.secondsIn(
-							currentEvent.getTimePeriod()).getSeconds());
-					searchArea = this.predictor.getSearchRegion(
-							currentEvent.getBBox(), span);
+				// get the search area to find tracks that may belong linked
+				// to the current one being processed
+				span = Seconds.secondsIn(currentEvent.getTimePeriod()).getSeconds() / Utility.SECONDS_TO_DAYS;
+				// set the time span to search in as the end of our current
+				// track+the
+				// the span of the frame for the last event in our current
+				// track being processed.
+				Interval currentSearchTime = new Interval(currentEvent.getTimePeriod().getEnd(),
+						currentEvent.getTimePeriod().toDuration());
 
-					potentialTracks = this.tracksIdxr
-							.filterOnIntervalAndLocation(new Interval(
-									startSearch, endSearch), searchArea);
-
+				float[] motionVect = null;
+				if (currentTrack.size() >= 2) {
+					searchArea = this.predictor.getSearchRegion(currentEvent.getBBox(), span);
 				} else {
-
-					Interval tp = getIndex(currentTrack, positionOfEvent - 1)
-							.getTimePeriod();
-					startSearch = currentEvent.getTimePeriod().getEnd();
-					endSearch = startSearch.plusSeconds(Seconds.secondsBetween(
-							currentEvent.getTimePeriod().getStart(),
-							tp.getStart()).getSeconds());
-					span = Seconds.secondsBetween(endSearch, startSearch)
-							.getSeconds() / Utility.SECONDS_TO_DAYS;
-
-					float[] motionVect = Utility.trackMovement(currentTrack);
-					searchArea = this.predictor.getSearchRegion(
-							currentEvent.getBBox(), motionVect, span);
-
-					potentialTracks = this.tracksIdxr
-							.filterOnIntervalAndLocation(new Interval(
-									startSearch, endSearch), searchArea);
+					motionVect = Utility.trackMovement(currentTrack);
+					searchArea = this.predictor.getSearchRegion(currentEvent.getBBox(), motionVect, span);
 				}
+				potentialTracks = this.tracksIdxr.filterOnIntervalAndLocation(currentSearchTime, searchArea);
 
 				// search locations for potential matches up to the maxFrameSkip
 				// away
 				// using the previously predicted search area as the starting
 				// point
 				// for the next search area.
-				startSearch = currentEvent.getTimePeriod().getEnd();
+
 				for (int j = 0; j < maxFrameSkip; j++) {
 					ArrayList<ITrack> potentialTracks2;
-					if (getIndex(currentTrack, positionOfEvent - 1) == null
-							|| getIndex(currentTrack, positionOfEvent - 2) == null) {
-						// get the search area to find tracks that may belong
-						// linked to the current one being processed
-						span = Seconds.secondsIn(currentEvent.getTimePeriod())
-								.getSeconds() / Utility.SECONDS_TO_DAYS;
-						// set the time span to search in as the end of our
-						// current track+the
-						// the span of the frame for the last event in our
-						// current track being processed.
-						endSearch = startSearch.plusSeconds(Seconds.secondsIn(
-								currentEvent.getTimePeriod()).getSeconds());
+					// update the currentSearchTime to the next frame
+					currentSearchTime = new Interval(currentSearchTime.getEnd(), currentSearchTime.toDuration());
+
+					// if we don't have a motion vector then use diff rotation
+					if (motionVect == null) {
+						// update search area for next frame
 						Rectangle rect = searchArea.getBounds();
 						searchArea = this.predictor.getSearchRegion(rect, span);
 
-						potentialTracks2 = this.tracksIdxr
-								.filterOnIntervalAndLocation(new Interval(
-										startSearch, endSearch), searchArea);
-						startSearch = endSearch;
+						// search next frame
+						potentialTracks2 = this.tracksIdxr.filterOnIntervalAndLocation(currentSearchTime, searchArea);
+
 					} else {
-						Interval tp = getIndex(currentTrack,
-								positionOfEvent - 1).getTimePeriod();
-						span = currentEvent.getTimePeriod().toDuration()
-								.toStandardSeconds().getSeconds()
-								/ Utility.SECONDS_TO_DAYS;
-						// startSearch = currentEvent.getTimePeriod().end();
-						endSearch = startSearch
-								.plusSeconds(Seconds
-										.secondsBetween(
-												currentEvent.getTimePeriod()
-														.getStart(),
-												tp.getStart()).getSeconds());
-
-						float[] motionVect = Utility
-								.trackMovement(currentTrack);
+						// update search area for next frame using motion vector
 						Rectangle rect = searchArea.getBounds();
-						searchArea = this.predictor.getSearchRegion(rect,
-								motionVect, span);
+						searchArea = this.predictor.getSearchRegion(rect, motionVect, span);
 
-						potentialTracks2 = this.tracksIdxr
-								.filterOnIntervalAndLocation(new Interval(
-										startSearch, endSearch), searchArea);
-						startSearch = endSearch;
+						// search next frame
+						potentialTracks2 = this.tracksIdxr.filterOnIntervalAndLocation(currentSearchTime, searchArea);
 					}
 
 					// put potential matches not in potentialTracks list into
 					// the list
 					while (!potentialTracks2.isEmpty()) {
 
-						ITrack possibleTrackFromSkippedFrames = potentialTracks2
-								.remove(potentialTracks2.size() - 1);
+						ITrack possibleTrackFromSkippedFrames = potentialTracks2.remove(potentialTracks2.size() - 1);
 						boolean isInList = false;
-						// cout << "Search for potential2 in potential" << endl;
 						for (ITrack trackInList : potentialTracks) {
-
-							if (possibleTrackFromSkippedFrames.getFirst()
-									.getId() == trackInList.getFirst().getId()) {
+							if (possibleTrackFromSkippedFrames.getFirst().getUUID() == trackInList.getFirst()
+									.getUUID()) {
 								isInList = true;
 								break;
 							}
 						}
-						// cout << "done search" << endl;
+
 						if (!isInList) {
 							potentialTracks.add(possibleTrackFromSkippedFrames);
 						}
@@ -205,7 +150,8 @@ public abstract class BaseUpperStage implements IProcessingStage {
 				}
 
 				// if the list of potential matches has anything in it,
-				// then we will process those tracks.
+				// then we will process those tracks by adding them to the graph
+				// problem
 				if (potentialTracks.size() >= 1) {
 					for (ITrack tmpTrk : potentialTracks) {
 						this.addEdgeBetweenTracks(currentTrack, tmpTrk, graph);
@@ -213,6 +159,7 @@ public abstract class BaseUpperStage implements IProcessingStage {
 				}
 			}
 
+			// if the graph problem was solved then return the results
 			if (graph.solve()) {
 				return graph.getTrackLinked();
 			}
@@ -229,11 +176,4 @@ public abstract class BaseUpperStage implements IProcessingStage {
 
 	protected abstract double prob(ITrack leftTrack, ITrack rightTrack);
 
-	protected IEvent getIndex(ITrack track, int position) {
-		try {
-			return track.get(position);
-		} catch (IndexOutOfBoundsException e) {
-			return null;
-		}
-	}
 }

@@ -50,7 +50,7 @@ public class TrackingResultFileReader {
 			int lastTrackId = 0;
 			int count = 0;
 			IEvent lastEvent = null;
-			ITrack track = null;
+
 			while ((line = this.in.readLine()) != null) {
 				String[] lineSplit = line.split("\t");
 				if (lineSplit.length > 6) {
@@ -108,26 +108,32 @@ public class TrackingResultFileReader {
 						throw new UnknownEventTypeException("Unrecognized event type: " + eventTypeString);
 					}
 
-					//TODO: this is fucked fix it!
+					// TODO: At some point this need to be updated with a call
+					// to a factory
 					IEvent ev = new GenericEvent(count++, range, tmp_coord, hpc_ccode.getBounds(), hpc_ccode,
 							eventType);
-					if (trackId == lastTrackId) {
-						if (track == null) {
-							track = new Track(ev);
-						} 
-						Interval tmpRange = lastEvent.getTimePeriod();
-						Interval newRange = tmpRange.withEndMillis(range.getEndMillis());
-						// new Interval(
-						// tmpRange.getStartMillis(),
-						// range.getStartMillis());
-						lastEvent.updateTimePeriod(newRange);
-						lastEvent = ev;
-					} else {
-						tmpList.add(track);
-						track = null;
-						lastEvent = ev;
+					if (lastTrackId == 0) {
+						//TODO: Same with the track
+						ITrack track = new Track(ev);
 						lastTrackId = trackId;
+						lastEvent = ev;
+						tmpList.add(track);
+					} else {
+						if (lastTrackId != trackId) {
+							ITrack track = new Track(ev);
+							lastTrackId = trackId;
+							lastEvent = ev;
+							tmpList.add(track);
+						} else {
+							ev.setPrevious(lastEvent);
+							lastEvent.setNext(ev);
+							lastEvent.updateTimePeriod(
+									new Interval(lastEvent.getTimePeriod().getStart(), ev.getTimePeriod().getStart()));
+							lastEvent = ev;
+						}
+
 					}
+
 				} else {
 					System.out.println("Split is not correct.");
 				}
