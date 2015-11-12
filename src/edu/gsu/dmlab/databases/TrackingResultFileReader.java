@@ -108,14 +108,13 @@ public class TrackingResultFileReader {
 						throw new UnknownEventTypeException("Unrecognized event type: " + eventTypeString);
 					}
 
+					//TODO: this is fucked fix it!
 					IEvent ev = new GenericEvent(count++, range, tmp_coord, hpc_ccode.getBounds(), hpc_ccode,
 							eventType);
 					if (trackId == lastTrackId) {
 						if (track == null) {
 							track = new Track(ev);
-						} else {
-							track.add(ev);
-						}
+						} 
 						Interval tmpRange = lastEvent.getTimePeriod();
 						Interval newRange = tmpRange.withEndMillis(range.getEndMillis());
 						// new Interval(

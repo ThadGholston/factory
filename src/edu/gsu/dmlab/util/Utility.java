@@ -23,7 +23,7 @@ public class Utility {
 
 		float[] motionNormMean = new float[2];
 
-		for (IEvent currentEvent : track) {
+		for (IEvent currentEvent : track.getEvents()) {
 			Point2D locationTwo = currentEvent.getLocation();
 			Point2D locationOne = event.getLocation();
 			xMovement += locationOne.getX() - locationTwo.getX();

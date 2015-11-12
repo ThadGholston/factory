@@ -1,6 +1,8 @@
 package edu.gsu.dmlab.graph.algo;
 
-import edu.gsu.dmlab.graph.Graph;
+import java.util.ArrayList;
+
+import edu.gsu.dmlab.graph.Edge;
 import edu.gsu.dmlab.graph.algo.interfaces.IGraphProblemSolver;
 
 import org.jgrapht.graph.SimpleDirectedWeightedGraph;
@@ -9,22 +11,16 @@ import org.jgrapht.graph.SimpleDirectedWeightedGraph;
  * Created by thad on 9/26/15.
  */
 public class SuccessiveShortestPaths implements IGraphProblemSolver {
-	Graph graph;
-	int source;
-	int sink;
-
-	public SuccessiveShortestPaths(Graph graph, int source, int sink) {
-		this.graph = graph;
-		this.source = source;
-		this.sink = sink;
-	}
-
-	public long findFlowCost(Integer source, Integer sink) {
+		
+	@SuppressWarnings("unused")
+	private long findFlowCost(Integer source, Integer sink) {
 		return 0;
 	}
 
 	@Override
-	public void solve() {
+	public ArrayList<String[]> solve(
+			SimpleDirectedWeightedGraph<String, Edge> graph, String source,
+			String sink) {
 		// We don't care to get the cost back. I only used it in the previous
 		// work
 		// to determine when we found the optimal number of tracks. I.E. when
@@ -32,6 +28,7 @@ public class SuccessiveShortestPaths implements IGraphProblemSolver {
 		// started going back up instead of down.
 
 		// We could return a solved graph?
+		return null;
 	}
 
 	public int[] getCapacity() {
