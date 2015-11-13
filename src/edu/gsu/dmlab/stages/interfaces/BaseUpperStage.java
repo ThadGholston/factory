@@ -12,9 +12,7 @@ package edu.gsu.dmlab.stages.interfaces;
 import edu.gsu.dmlab.datatypes.interfaces.IEvent;
 import edu.gsu.dmlab.datatypes.interfaces.ITrack;
 import edu.gsu.dmlab.factory.interfaces.IGraphProblemFactory;
-
 import edu.gsu.dmlab.graph.Graph;
-
 import edu.gsu.dmlab.indexes.interfaces.ITrackIndexer;
 import edu.gsu.dmlab.util.Utility;
 import edu.gsu.dmlab.util.interfaces.ISearchAreaProducer;
@@ -25,6 +23,8 @@ import org.joda.time.Seconds;
 import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.UUID;
 
 public abstract class BaseUpperStage implements IProcessingStage {
 
@@ -38,13 +38,16 @@ public abstract class BaseUpperStage implements IProcessingStage {
 
 	protected int countX;
 
-	public BaseUpperStage(ISearchAreaProducer predictor, IGraphProblemFactory graphFactory, ITrackIndexer tracksIdxr,
+	public BaseUpperStage(ISearchAreaProducer predictor,
+			IGraphProblemFactory graphFactory, ITrackIndexer tracksIdxr,
 			int maxFrameSkip) {
 
 		if (predictor == null)
-			throw new IllegalArgumentException("Search Area Producer cannot be null.");
+			throw new IllegalArgumentException(
+					"Search Area Producer cannot be null.");
 		if (graphFactory == null)
-			throw new IllegalArgumentException("Graph Problem Factory cannot be null.");
+			throw new IllegalArgumentException(
+					"Graph Problem Factory cannot be null.");
 
 		this.predictor = predictor;
 		this.tracksIdxr = tracksIdxr;
@@ -78,27 +81,36 @@ public abstract class BaseUpperStage implements IProcessingStage {
 
 				double span;
 				Polygon searchArea;
-				ArrayList<ITrack> potentialTracks;
+				HashMap<UUID, ITrack> potentialMap = new HashMap<UUID, ITrack>();
 
 				// get the search area to find tracks that may belong linked
 				// to the current one being processed
-				span = Seconds.secondsIn(currentEvent.getTimePeriod()).getSeconds() / Utility.SECONDS_TO_DAYS;
+				span = Seconds.secondsIn(currentEvent.getTimePeriod())
+						.getSeconds() / Utility.SECONDS_TO_DAYS;
 				// set the time span to search in as the end of our current
 				// track+the
 				// the span of the frame for the last event in our current
 				// track being processed.
-				Interval currentSearchTime = new Interval(currentEvent.getTimePeriod().getEnd(),
-						currentEvent.getTimePeriod().toDuration());
+				Interval currentSearchTime = new Interval(currentEvent
+						.getTimePeriod().getEnd(), currentEvent.getTimePeriod()
+						.toDuration());
 
 				float[] motionVect = null;
 				if (currentTrack.size() >= 2) {
-					searchArea = this.predictor.getSearchRegion(currentEvent.getBBox(), span);
+					searchArea = this.predictor.getSearchRegion(
+							currentEvent.getBBox(), span);
 				} else {
 					motionVect = Utility.trackMovement(currentTrack);
-					searchArea = this.predictor.getSearchRegion(currentEvent.getBBox(), motionVect, span);
+					searchArea = this.predictor.getSearchRegion(
+							currentEvent.getBBox(), motionVect, span);
 				}
-				potentialTracks = this.tracksIdxr.filterOnIntervalAndLocation(currentSearchTime, searchArea);
+				ArrayList<ITrack> potentialTracks = this.tracksIdxr
+						.filterOnIntervalAndLocation(currentSearchTime,
+								searchArea);
 
+				for (ITrack trk : potentialTracks) {
+					potentialMap.put(trk.getUUID(), trk);
+				}
 				// search locations for potential matches up to the maxFrameSkip
 				// away
 				// using the previously predicted search area as the starting
@@ -106,54 +118,51 @@ public abstract class BaseUpperStage implements IProcessingStage {
 				// for the next search area.
 
 				for (int j = 0; j < maxFrameSkip; j++) {
-					ArrayList<ITrack> potentialTracks2;
+
 					// update the currentSearchTime to the next frame
-					currentSearchTime = new Interval(currentSearchTime.getEnd(), currentSearchTime.toDuration());
+					currentSearchTime = new Interval(
+							currentSearchTime.getEnd(),
+							currentSearchTime.toDuration());
 
 					// if we don't have a motion vector then use diff rotation
+
 					if (motionVect == null) {
 						// update search area for next frame
 						Rectangle rect = searchArea.getBounds();
 						searchArea = this.predictor.getSearchRegion(rect, span);
 
 						// search next frame
-						potentialTracks2 = this.tracksIdxr.filterOnIntervalAndLocation(currentSearchTime, searchArea);
+						potentialTracks = this.tracksIdxr
+								.filterOnIntervalAndLocation(currentSearchTime,
+										searchArea);
 
 					} else {
 						// update search area for next frame using motion vector
 						Rectangle rect = searchArea.getBounds();
-						searchArea = this.predictor.getSearchRegion(rect, motionVect, span);
+						searchArea = this.predictor.getSearchRegion(rect,
+								motionVect, span);
 
 						// search next frame
-						potentialTracks2 = this.tracksIdxr.filterOnIntervalAndLocation(currentSearchTime, searchArea);
+						potentialTracks = this.tracksIdxr
+								.filterOnIntervalAndLocation(currentSearchTime,
+										searchArea);
 					}
 
 					// put potential matches not in potentialTracks list into
 					// the list
-					while (!potentialTracks2.isEmpty()) {
-
-						ITrack possibleTrackFromSkippedFrames = potentialTracks2.remove(potentialTracks2.size() - 1);
-						boolean isInList = false;
-						for (ITrack trackInList : potentialTracks) {
-							if (possibleTrackFromSkippedFrames.getFirst().getUUID() == trackInList.getFirst()
-									.getUUID()) {
-								isInList = true;
-								break;
-							}
-						}
-
-						if (!isInList) {
-							potentialTracks.add(possibleTrackFromSkippedFrames);
+					for (ITrack trk : potentialTracks) {
+						if (!potentialMap.containsKey(trk.getUUID())) {
+							potentialMap.put(trk.getUUID(), trk);
 						}
 					}
 
 				}
 
-				// if the list of potential matches has anything in it,
+				// if the map of potential matches has anything in it,
 				// then we will process those tracks by adding them to the graph
 				// problem
-				if (potentialTracks.size() >= 1) {
-					for (ITrack tmpTrk : potentialTracks) {
+				if (potentialMap.size() >= 1) {
+					for (ITrack tmpTrk : potentialMap.values()) {
 						this.addEdgeBetweenTracks(currentTrack, tmpTrk, graph);
 					}
 				}

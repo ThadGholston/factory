@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import org.jgrapht.graph.SimpleDirectedWeightedGraph;
 
+import edu.gsu.dmlab.datatypes.interfaces.IEvent;
 import edu.gsu.dmlab.datatypes.interfaces.ITrack;
 import edu.gsu.dmlab.factory.interfaces.IGraphProblemFactory;
 import edu.gsu.dmlab.graph.algo.interfaces.IGraphProblemSolver;
@@ -28,6 +29,7 @@ public class Graph {
 	SimpleDirectedWeightedGraph<String, Edge> grph;
 	HashMap<String, ITrack> leftTracks;
 	HashMap<String, ITrack> rightTracks;
+	boolean solved = false;
 
 	public Graph(ArrayList<ITrack> tracks, IGraphProblemFactory factory,
 			ILocationProbCal enterLocProbCalc,
@@ -58,15 +60,14 @@ public class Graph {
 		this.rightTracks = new HashMap<String, ITrack>();
 	}
 
-	public int[] getSourceSink() {
-		return new int[] { 0, 1 };
-	}
+	
 
 	private void addEdgeFromSource(ITrack to, String vertexName) {
 		double entPd = this.enterLocProbCalc.calcProb(to.getFirst());
 		double entP = -(Math.log(entPd) * multFactor);
 		Edge edg = this.factory.getEdge(entP);
 		this.grph.addEdge(SOURCE, vertexName, edg);
+		this.grph.setEdgeWeight(edg, edg.getWeight());
 	}
 
 	private void addEdgeToSink(ITrack from, String vertexName) {
@@ -74,6 +75,7 @@ public class Graph {
 		double exP = -(Math.log(exPd) * multFactor);
 		Edge edg = this.factory.getEdge(exP);
 		this.grph.addEdge(vertexName, SINK, edg);
+		this.grph.setEdgeWeight(edg, edg.getWeight());
 	}
 
 	private void addObserVationEdge(ITrack track, String vertexName1,
@@ -83,6 +85,7 @@ public class Graph {
 		int obsCost = (int) (Math.log(Bi / (1.0 - Bi)) * multFactor);
 		Edge edg = this.factory.getEdge(obsCost);
 		this.grph.addEdge(vertexName1, vertexName2, edg);
+		this.grph.setEdgeWeight(edg, edg.getWeight());
 	}
 
 	public void addEdge(ITrack from, ITrack to, int weight) {
@@ -110,6 +113,8 @@ public class Graph {
 		}
 		Edge edg = this.factory.getEdge(weight);
 		this.grph.addEdge(fromUUID2, toUUID1, edg);
+		if (this.solved == true)
+			this.solved = false;
 	}
 
 	public boolean solve() {
@@ -118,16 +123,37 @@ public class Graph {
 			ArrayList<String[]> edgesList = solver.solve(grph, SOURCE, SINK);
 			for (int i = 0; i < edgesList.size(); i++) {
 				String[] edges = edgesList.get(i);
-				
-				
+
+				if (edges[0].endsWith("2")) {
+					ITrack leftTrack = this.leftTracks.get(edges[0]);
+					ITrack rightTrack = this.rightTracks.get(edges[1]);
+					IEvent leftEvent = leftTrack.getLast();
+					IEvent rightEvent = rightTrack.getFirst();
+					leftEvent.setNext(rightEvent);
+					rightEvent.setPrevious(leftEvent);
+				}
+
 			}
 		}
-		return false;
+		this.solved = true;
+		return true;
 	}
 
 	public ArrayList<ITrack> getTrackLinked() {
-		this.solve();
-		return null;
+		if (this.solved == false) {
+			this.solve();
+		}
+		HashMap<UUID, ITrack> uniqueTracks = new HashMap<UUID, ITrack>();
+		for (int i = 0; i < this.tracks.size(); i++) {
+			ITrack tmpTrk = this.tracks.get(i);
+			if (!uniqueTracks.containsKey(tmpTrk.getFirst().getUUID())) {
+				uniqueTracks.put(tmpTrk.getFirst().getUUID(), tmpTrk);
+			}
+		}
+
+		ArrayList<ITrack> returnVals = new ArrayList<ITrack>(
+				uniqueTracks.values());
+		return returnVals;
 	}
 
 }
