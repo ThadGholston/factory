@@ -83,9 +83,7 @@ public class ObjectFactory implements IObjectFactory {
 		return new Track(event);
 	}
 
-	public static ITrack getNewTrack(ITrack track1, ITrack track2) {
-		return new Track(track1, track2);
-	}
+	
 
 	@Override
 	public ITrack getTrack(Collection<IEvent> events) {

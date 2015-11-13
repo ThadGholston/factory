@@ -11,44 +11,52 @@ package edu.gsu.dmlab.datatypes.interfaces;
 import edu.gsu.dmlab.datatypes.EventType;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
 
-public interface ITrack extends IBaseDataType, List<IEvent>, RandomAccess, Cloneable, Serializable, Iterable<IEvent>, Collection<IEvent> {
+public interface ITrack extends IBaseDataType, Serializable {
 
-    /**
-     * Returns the start time in milliseconds of the first event in the track
-     * @return
-     */
-    long getStartTimeMillis();
+	/**
+	 * Returns the start time in milliseconds of the first event in the track
+	 * 
+	 * @return
+	 */
+	long getStartTimeMillis();
 
-    /**
-     * Returns the end time in milliseconds of the last event in the track
-     * @return
-     */
-    long getEndTimeMillis();
+	/**
+	 * Returns the end time in milliseconds of the last event in the track
+	 * 
+	 * @return
+	 */
+	long getEndTimeMillis();
 
-    /**
-     * Returns an array that contains all of the events currently in the track
-     * @return array of all the events currently in the track
-     */
-    IEvent[] getEvents();
+	/**
+	 * Returns an array that contains all of the events currently in the track
+	 * 
+	 * @return array of all the events currently in the track
+	 */
+	ArrayList<IEvent> getEvents();
+	
+	int size();
 
-    /**
-     * Returns the first event in the track
-     * @return the first event in the track
-     */
-    IEvent getFirst();
+	/**
+	 * Returns the first event in the track
+	 * 
+	 * @return the first event in the track
+	 */
+	IEvent getFirst();
 
-    /**
-     * Returns the last event in the track
-     * @return the last event in the track
-     */
-    IEvent getLast();
+	/**
+	 * Returns the last event in the track
+	 * 
+	 * @return the last event in the track
+	 */
+	IEvent getLast();
 
-    /**
-     * Returns the event type of the track
-     * @return the event type of the track
-     */
-    public EventType getType();
+	/**
+	 * Returns the event type of the track
+	 * 
+	 * @return the event type of the track
+	 */
+	public EventType getType();
 
 }
