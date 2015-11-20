@@ -26,25 +26,10 @@ public interface IBaseDataType {
 
 	int compareTime(IBaseDataType baseDataType);
 
-	boolean intersects(Interval interval);
-
-	boolean isBefore(Interval timePeriod);
-
-	boolean isBefore(IBaseDataType obj);
-
-	boolean isAfter(Interval timePeriod);
-
-	boolean isAfter(IBaseDataType obj);
+//	boolean intersects(Interval interval);
 
 	UUID getUUID();
 	
-	public static Comparator<IBaseDataType> baseComparator = new Comparator<IBaseDataType>(){
-
-		@Override
-		public int compare(IBaseDataType o1, IBaseDataType o2) {
-			return o1.compareTime(o2);
-		}
-		
-	};
+	Comparator<IBaseDataType> baseComparator = IBaseDataType::compareTime;
 
 }

@@ -81,7 +81,7 @@ public class BasicTrackIndexer extends AbsMatIndexer<ITrack>implements ITrackInd
 	}
 
 	@Override
-	public ArrayList<ITrack> filterOnInterval(Interval timePeriod) {
+	public ArrayList<ITrack> search(Interval timePeriod) {
 		// TODO Auto-generated method stub
 		return null;
 	}

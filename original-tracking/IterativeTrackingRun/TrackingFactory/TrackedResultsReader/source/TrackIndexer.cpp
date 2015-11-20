@@ -233,23 +233,23 @@ public:
 
 	vector<ITrack*>* getTracks(bt::ptime begin, bt::ptime end) {
 
-		vector<ITrack*>* returnedTracks = new vector<ITrack*>();
-		bt::time_period range(begin, end);
-		for (int i = 0; i < this->tracksPtr->size(); i++) {
-			ITrack* tmpTrk = this->tracksPtr->at(i);
-			IEvent* tmpEvent = tmpTrk->getFirst();
+     		vector<ITrack*>* returnedTracks = new vector<ITrack*>();
+     		bt::time_period range(begin, end);
+     		for (int i = 0; i < this->tracksPtr->size(); i++) {
+     			ITrack* tmpTrk = this->tracksPtr->at(i);
+     			IEvent* tmpEvent = tmpTrk->getFirst();
 
-			bt::time_period period = tmpEvent->getTimePeriod();
-			//if start time is in the time range add to list
-			if (range.intersects(period)) {
-				returnedTracks->push_back(tmpTrk);
-			}//if past time, no reason to continue through the list as it is sorted by start time
-			else if (range < period) {
-				break;
-			}
-		}
-		return returnedTracks;
-	}
+     			bt::time_period period = tmpEvent->getTimePeriod();
+     			//if start time is in the time range add to list
+     			if (range.intersects(period)) {
+     				returnedTracks->push_back(tmpTrk);
+     			}//if past time, no reason to continue through the list as it is sorted by start time
+     			else if (range < period) {
+     				break;
+     			}
+     		}
+     		return returnedTracks;
+     	}
 
 	vector<ITrack*>* getTracksStartBetween(bt::ptime begin, bt::ptime end, vector<Point2i>* searchArea) {
 

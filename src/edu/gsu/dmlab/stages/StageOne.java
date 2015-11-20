@@ -63,7 +63,7 @@ public class StageOne implements IProcessingStage {
 		 */
 		Interval timePeriod = new Interval(startTime, endTime);
 		ArrayList<IEvent> events = this.eventIndexer
-				.filterOnInterval(timePeriod);
+				.search(timePeriod);
 		events.parallelStream().forEach(e -> linkToNext(e));
 
 		// Now we determine how many tracks we have.
@@ -113,7 +113,7 @@ public class StageOne implements IProcessingStage {
 
 			// Get the events in the neighborhood
 			ArrayList<IEvent> eventsInArea = this.eventIndexer
-					.filterOnIntervalAndLocation(nextTime, searchArea);
+					.search(nextTime, searchArea);
 
 			// Only if there is one do we process
 			if (eventsInArea.size() == 1) {

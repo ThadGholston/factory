@@ -29,8 +29,8 @@ public class BasicEventIndexer extends AbsMatIndexer<IEvent> implements
 	HashMap<Integer, ArrayList<IEvent>> frames = new HashMap<Integer, ArrayList<IEvent>>();
 
 	public BasicEventIndexer(ArrayList<IEvent> regionalList,
-			int regionDimension, int regionDiv, Duration frameSpan,
-			IIndexFactory factory) throws IllegalArgumentException {
+							 int regionDimension, int regionDiv, Duration frameSpan,
+							 IIndexFactory factory) throws IllegalArgumentException {
 
 		super(regionalList, regionDimension, regionDiv);
 
@@ -45,8 +45,8 @@ public class BasicEventIndexer extends AbsMatIndexer<IEvent> implements
 
 		this.frameSpan = frameSpan;
 		this.globalTimePeriod = null; // the build index should
-										// expand this as events are
-										// indexed.
+		// expand this as events are
+		// indexed.
 		this.factory = factory;
 		this.buildIndex();
 	}
@@ -67,7 +67,7 @@ public class BasicEventIndexer extends AbsMatIndexer<IEvent> implements
 	}
 
 	@Override
-	public ArrayList<IEvent> filterOnInterval(Interval timePeriod) {
+	public ArrayList<IEvent> search(Interval timePeriod) {
 		HashMap<UUID, IEvent> results = new HashMap<>();
 
 		// if the query time actually overlaps then do it
@@ -145,7 +145,7 @@ public class BasicEventIndexer extends AbsMatIndexer<IEvent> implements
 	 * This method assumes that the input interval is within the global time
 	 * period. Make sure to expand the global interval if this is not the case,
 	 * or trim the input timePeriod prior to calling.
-	 * 
+	 *
 	 * @param timePeriod
 	 *            the time period we wish to get valid index locations for
 	 * @return the set of index locations the input period intersects

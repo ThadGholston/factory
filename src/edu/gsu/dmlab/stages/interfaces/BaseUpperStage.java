@@ -99,10 +99,25 @@ public abstract class BaseUpperStage implements IProcessingStage {
 				if (currentTrack.size() >= 2) {
 					searchArea = this.predictor.getSearchRegion(
 							currentEvent.getBBox(), span);
+<<<<<<< Updated upstream
+=======
+
+					potentialTracks = this.tracksIdxr
+							.search(new Interval(
+									startSearch, endSearch), searchArea);
+
+>>>>>>> Stashed changes
 				} else {
 					motionVect = Utility.trackMovement(currentTrack);
 					searchArea = this.predictor.getSearchRegion(
 							currentEvent.getBBox(), motionVect, span);
+<<<<<<< Updated upstream
+=======
+
+					potentialTracks = this.tracksIdxr
+							.search(new Interval(
+									startSearch, endSearch), searchArea);
+>>>>>>> Stashed changes
 				}
 				ArrayList<ITrack> potentialTracks = this.tracksIdxr
 						.filterOnIntervalAndLocation(currentSearchTime,
@@ -131,21 +146,35 @@ public abstract class BaseUpperStage implements IProcessingStage {
 						Rectangle rect = searchArea.getBounds();
 						searchArea = this.predictor.getSearchRegion(rect, span);
 
+<<<<<<< Updated upstream
 						// search next frame
 						potentialTracks = this.tracksIdxr
 								.filterOnIntervalAndLocation(currentSearchTime,
 										searchArea);
 
+=======
+						potentialTracks2 = this.tracksIdxr
+								.search(new Interval(
+										startSearch, endSearch), searchArea);
+						startSearch = endSearch;
+>>>>>>> Stashed changes
 					} else {
 						// update search area for next frame using motion vector
 						Rectangle rect = searchArea.getBounds();
 						searchArea = this.predictor.getSearchRegion(rect,
 								motionVect, span);
 
+<<<<<<< Updated upstream
 						// search next frame
 						potentialTracks = this.tracksIdxr
 								.filterOnIntervalAndLocation(currentSearchTime,
 										searchArea);
+=======
+						potentialTracks2 = this.tracksIdxr
+								.search(new Interval(
+										startSearch, endSearch), searchArea);
+						startSearch = endSearch;
+>>>>>>> Stashed changes
 					}
 
 					// put potential matches not in potentialTracks list into

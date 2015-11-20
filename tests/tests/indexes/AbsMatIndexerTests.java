@@ -14,7 +14,6 @@ import java.util.UUID;
 import org.joda.time.Interval;
 
 import edu.gsu.dmlab.datatypes.interfaces.IBaseDataType;
-import edu.gsu.dmlab.datatypes.interfaces.IEvent;
 import edu.gsu.dmlab.geometry.Rectangle2D;
 import edu.gsu.dmlab.indexes.interfaces.AbsMatIndexer;
 
@@ -48,11 +47,9 @@ public class AbsMatIndexerTests {
 		}
 
 		@Override
-		public ArrayList<IBaseDataType> filterOnInterval(Interval timePeriod) {
-			//  Auto-generated method stub
+		public ArrayList<IBaseDataType> search(Interval timePeriod) {
 			return null;
 		}
-		
 	}
 	
 	@Test(expected = IllegalArgumentException.class)
@@ -124,7 +121,7 @@ public class AbsMatIndexerTests {
 	}
 	
 	@Test
-	public void testFilterOnIntervalAndLocationReturnWhenIntersects() throws IllegalArgumentException {
+	public void testSearchReturnWhenIntersects() throws IllegalArgumentException {
 		ArrayList<IBaseDataType> lst = new ArrayList<IBaseDataType>();
 		
 		FakeAbsMatIndexer idxr = new FakeAbsMatIndexer(lst, 4,1);
@@ -145,13 +142,13 @@ public class AbsMatIndexerTests {
 		idxr.setSearchSpace(rect, obj);
 		
 		
-		ArrayList<IBaseDataType> retList = idxr.filterOnIntervalAndLocation(itvl, poly);
+		ArrayList<IBaseDataType> retList = idxr.search(itvl, poly);
 		assertTrue(retList.size()==1);
 		
 	}
 	
 	@Test
-	public void testFilterOnIntervalAndLocationDoesNotReturnWhenNotIntersectingSpatial() throws IllegalArgumentException {
+	public void testSearchDoesNotReturnWhenNotIntersectingSpatial() throws IllegalArgumentException {
 		ArrayList<IBaseDataType> lst = new ArrayList<IBaseDataType>();
 		
 		FakeAbsMatIndexer idxr = new FakeAbsMatIndexer(lst, 4,1);
@@ -170,13 +167,13 @@ public class AbsMatIndexerTests {
 		int[] xArr2 = {3,4,4,3};
 		int[] yArr2 = {3,3,4,4};
 		Polygon poly = new Polygon(xArr2, yArr2, xArr2.length);
-		ArrayList<IBaseDataType> retList = idxr.filterOnIntervalAndLocation(itvl, poly);
+		ArrayList<IBaseDataType> retList = idxr.search(itvl, poly);
 		assertTrue(retList.size()==0);
 		
 	}
 	
 	@Test
-	public void testFilterOnIntervalAndLocationDoesNotReturnWhenNotIntersectingTemporal() throws IllegalArgumentException {
+	public void testSearchDoesNotReturnWhenNotIntersectingTemporal() throws IllegalArgumentException {
 		ArrayList<IBaseDataType> lst = new ArrayList<IBaseDataType>();
 		
 		FakeAbsMatIndexer idxr = new FakeAbsMatIndexer(lst, 4,1);
@@ -196,7 +193,7 @@ public class AbsMatIndexerTests {
 		int[] xArr2 = {1,3,3,1};
 		int[] yArr2 = {1,1,3,3};
 		Polygon poly = new Polygon(xArr2, yArr2, xArr2.length);
-		ArrayList<IBaseDataType> retList = idxr.filterOnIntervalAndLocation(itvl2, poly);
+		ArrayList<IBaseDataType> retList = idxr.search(itvl2, poly);
 		assertTrue(retList.size()==0);
 		
 	}

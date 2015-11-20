@@ -102,7 +102,7 @@ public class BasicEventIndexerTests {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testFilterOnIntervalAndLocationDoesNotReturnWhenNotIntersectingSpatial()
+	public void testBasicEventSearchDoesNotReturnWhenNotIntersectingSpatial()
 			throws IllegalArgumentException {
 		ArrayList<IEvent> lst = new ArrayList<IEvent>();
 
@@ -138,14 +138,14 @@ public class BasicEventIndexerTests {
 		int[] yArr2 = { 3, 3, 4, 4 };
 		Polygon poly = new Polygon(xArr2, yArr2, xArr2.length);
 		ArrayList<IEvent> retList = idxr
-				.filterOnIntervalAndLocation(itvl, poly);
+				.search(itvl, poly);
 		assertTrue(retList.size() == 0);
 
 	}
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testFilterOnIntervalAndLocationDoesReturnWhenIntersectingSpatialTemporal()
+	public void testBasicEventSearchDoesReturnWhenIntersectingSpatialTemporal()
 			throws IllegalArgumentException {
 		ArrayList<IEvent> lst = new ArrayList<IEvent>();
 
@@ -183,14 +183,14 @@ public class BasicEventIndexerTests {
 		int[] yArr2 = {1,1,2,2};
 		Polygon poly = new Polygon(xArr2, yArr2, xArr2.length);
 		ArrayList<IEvent> retList = idxr
-				.filterOnIntervalAndLocation(itvl, poly);
+				.search(itvl, poly);
 		assertTrue(retList.size() == 1);
 
 	}
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testFilterOnIntervalAndLocationDoesNotReturnWhenIntersectingSpatialButNotTemporal()
+	public void testBasicEventSearchDoesNotReturnWhenIntersectingSpatialButNotTemporal()
 			throws IllegalArgumentException {
 		ArrayList<IEvent> lst = new ArrayList<IEvent>();
 
@@ -228,14 +228,14 @@ public class BasicEventIndexerTests {
 		int[] yArr2 = {1,1,2,2};
 		Polygon poly = new Polygon(xArr2, yArr2, xArr2.length);
 		ArrayList<IEvent> retList = idxr
-				.filterOnIntervalAndLocation(itvl2, poly);
+				.search(itvl2, poly);
 		assertTrue(retList.size() == 0);
 
 	}
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testFilterOnIntervalDoesNotReturnWhenNotIntersectingTemporal()
+	public void testBasicEventSearchDoesNotReturnWhenNotIntersectingTemporal()
 			throws IllegalArgumentException {
 		ArrayList<IEvent> lst = new ArrayList<IEvent>();
 
@@ -269,14 +269,14 @@ public class BasicEventIndexerTests {
 				regionDiv, dur, factory);
 
 		Interval itvl2 = new Interval(6000, 7000);
-		ArrayList<IEvent> retList = idxr.filterOnInterval(itvl2);
+		ArrayList<IEvent> retList = idxr.search(itvl2);
 		assertTrue(retList.size() == 0);
 
 	}
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testFilterOnIntervalDoesReturnWhenIntersectingTemporal()
+	public void testBasicEventSearchDoesReturnWhenIntersectingTemporal()
 			throws IllegalArgumentException {
 		ArrayList<IEvent> lst = new ArrayList<IEvent>();
 
@@ -309,7 +309,7 @@ public class BasicEventIndexerTests {
 		AbsMatIndexer<IEvent> idxr = new BasicEventIndexer(lst, regionDim,
 				regionDiv, dur, factory);
 
-		ArrayList<IEvent> retList = idxr.filterOnInterval(itvl);
+		ArrayList<IEvent> retList = idxr.search(itvl);
 		assertTrue(retList.size() == 1);
 
 	}

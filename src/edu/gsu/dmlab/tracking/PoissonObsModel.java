@@ -33,7 +33,7 @@ public class PoissonObsModel implements IObsModel {
 		Interval timePeriod = new Interval(start, end);
 		int lambda = 0;
 		int delta = 0;
-		if (event.intersects(timePeriod)) {
+		if (event.getTimePeriod().overlaps(timePeriod)) {
 			end = start.plus(this.timeSpan * this.numSpan);
 			Interval range = new Interval(start, end);
 			lambda = evntsIdxr.getExpectedChangePerFrame(range);

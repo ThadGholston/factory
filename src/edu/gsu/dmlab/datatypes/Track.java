@@ -18,6 +18,7 @@ import edu.gsu.dmlab.datatypes.interfaces.IEvent;
 import edu.gsu.dmlab.datatypes.interfaces.ITrack;
 
 @SuppressWarnings("serial")
+<<<<<<< Updated upstream
 public class Track implements ITrack {
 
 	private UUID uniqueId = null;
@@ -161,4 +162,83 @@ public class Track implements ITrack {
 		this.eventsList = evList;
 		this.outDated = false;
 	}
+=======
+public class Track extends ArrayList<IEvent> implements ITrack {
+
+    private UUID uniqueId = null;
+
+    public Track(IEvent event) {
+        this();
+        this.add(event);
+    }
+
+    public Track(Collection<IEvent> events) {
+        this();
+        this.addAll(events);
+    }
+
+    public Track(Collection<IEvent> events1, Collection<IEvent> events2) {
+        this();
+        this.addAll(events1);
+        this.addAll(events2);
+    }
+
+    private Track(){
+        this.uniqueId = UUID.randomUUID();
+    }
+
+    @Override
+    public long getStartTimeMillis() {
+        return this.getFirst().getTimePeriod().getStartMillis();
+    }
+
+    @Override
+    public long getEndTimeMillis() {
+        return this.getLast().getTimePeriod().getEndMillis();
+    }
+
+    @Override
+    public IEvent[] getEvents() {
+    	IEvent[] retArr = new IEvent[this.size()];
+    	this.toArray(retArr);
+        return retArr;
+    }
+
+    @Override
+    public IEvent getFirst() {
+        return this.get(0);
+    }
+
+    @Override
+    public IEvent getLast() {
+        return this.get(this.size() - 1);
+    }
+
+    @Override
+    public Interval getTimePeriod() {
+        return new Interval(this.getStartTimeMillis(), this.getEndTimeMillis());
+    }
+
+    @Override
+    public int compareTime(IBaseDataType baseDataType) {
+        ITrack track = (ITrack) baseDataType;
+        return this.get(0).getTimePeriod().getStart().compareTo(track.getTimePeriod().getStart());
+    }
+
+//    @Override
+//    public boolean intersects(Interval interval) {
+//        return interval.overlaps(interval);
+//    }
+//
+
+    @Override
+    public EventType getType() {
+        return this.getFirst().getType();
+    }
+
+    @Override
+    public UUID getUUID() {
+        return this.uniqueId;
+    }
+>>>>>>> Stashed changes
 }

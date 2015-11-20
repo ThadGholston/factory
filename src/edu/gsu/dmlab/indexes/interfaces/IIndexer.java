@@ -12,10 +12,10 @@ import java.util.ArrayList;
  * Created by thad on 10/11/15.
  */
 public interface IIndexer<T extends IBaseDataType> {
-	    
+
     public DateTime getFirstTime();
     public DateTime getLastTime();
-    public ArrayList<T> filterOnInterval(Interval timePeriod);
-    public ArrayList<T> filterOnIntervalAndLocation(Interval timePeriod, Polygon searchArea);
+    public ArrayList<T> search(Interval timePeriod);
+    public ArrayList<T> search(Interval timePeriod, Polygon searchArea);
     public ArrayList<T> getAll();
 }

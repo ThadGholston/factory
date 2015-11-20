@@ -16,7 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Created by thad on 10/11/15. Edited by Dustin Kempton on 10/27/15
  */
-public abstract class AbsMatIndexer<T extends IBaseDataType> {
+public abstract class AbsMatIndexer<T extends IBaseDataType> implements IIndexer<T> {
 	protected ArrayList<IBaseDataType>[][] searchSpace;
 	protected ArrayList<T> objectList;
 	protected int regionDivisor;
@@ -24,7 +24,7 @@ public abstract class AbsMatIndexer<T extends IBaseDataType> {
 
 	@SuppressWarnings("unchecked")
 	public AbsMatIndexer(ArrayList<T> objectList, int regionDimension,
-			int regionDivisor) throws IllegalArgumentException {
+						 int regionDivisor) throws IllegalArgumentException {
 		if (objectList == null)
 			throw new IllegalArgumentException("Object List cannot be null");
 		if (regionDimension < 1)
@@ -64,8 +64,6 @@ public abstract class AbsMatIndexer<T extends IBaseDataType> {
 		return objectList.get(objectList.size() - 1).getTimePeriod().getEnd();
 	}
 
-	public abstract ArrayList<T> filterOnInterval(Interval timePeriod);
-
 	/*
 	 * { ArrayList<T> results = new ArrayList<>(); for(T obj: (ArrayList<T>)
 	 * objectList){ if (obj.intersects(timePeriod)){ results.add(obj); } if
@@ -73,8 +71,8 @@ public abstract class AbsMatIndexer<T extends IBaseDataType> {
 	 */
 
 	@SuppressWarnings("unchecked")
-	public ArrayList<T> filterOnIntervalAndLocation(Interval timePeriod,
-			Polygon searchArea) {
+	public ArrayList<T> search(Interval timePeriod,
+							   Polygon searchArea) {
 		ConcurrentHashMap<UUID, IBaseDataType> results = new ConcurrentHashMap<>();
 		Polygon scaledSearchArea = GeometryUtilities.scalePolygon(searchArea,
 				this.regionDivisor);

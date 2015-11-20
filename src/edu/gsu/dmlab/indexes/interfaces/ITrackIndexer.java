@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package edu.gsu.dmlab.indexes.interfaces;
 

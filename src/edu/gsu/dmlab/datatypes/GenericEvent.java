@@ -116,11 +116,6 @@ public class GenericEvent implements IEvent {
 		return this.getTimePeriod().getStart().compareTo(baseDataType.getTimePeriod().getStart());
 	}
 
-	@Override
-	public boolean intersects(Interval interval) {
-		return interval.overlaps(this.timePeriod);
-	}
-
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -141,26 +136,6 @@ public class GenericEvent implements IEvent {
 	@Override
 	public EventType getType() {
 		return this.type;
-	}
-
-	@Override
-	public boolean isBefore(Interval timePeriod) {
-		return this.getTimePeriod().isBefore(timePeriod);
-	}
-
-	@Override
-	public boolean isBefore(IBaseDataType obj) {
-		return this.getTimePeriod().isBefore(obj.getTimePeriod());
-	}
-
-	@Override
-	public boolean isAfter(Interval timePeriod) {
-		return this.getTimePeriod().isAfter(timePeriod);
-	}
-
-	@Override
-	public boolean isAfter(IBaseDataType obj) {
-		return this.getTimePeriod().isAfter(obj.getTimePeriod());
 	}
 
 	/*
