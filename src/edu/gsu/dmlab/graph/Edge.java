@@ -1,25 +1,30 @@
 package edu.gsu.dmlab.graph;
 
-
-import org.jgrapht.graph.DefaultEdge;
+import org.jgrapht.graph.DefaultWeightedEdge;
 
 /**
  * Created by thad on 10/3/15.
  */
-public class Edge extends DefaultEdge {
+public class Edge extends DefaultWeightedEdge {
 
-    private int capacity;
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 7185657615982000843L;
+	double weight;
 
-    public Edge(int capacity){
-        super();
-        this.capacity = capacity;
-    }
+	public Edge(double weight) {
+		super();
+		this.weight = weight;
+	}
 
-    public int getCapacity() {
-        return capacity;
-    }
+	@Override
+	public double getWeight() {
+		return this.weight;
+	}
 
-    public void setCapacity(int capacity) {
-        this.capacity = capacity;
-    }
+	@Override
+	public Object clone() {
+		return new Edge(this.getWeight());
+	}
 }

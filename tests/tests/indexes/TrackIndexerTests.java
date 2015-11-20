@@ -7,17 +7,13 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import edu.gsu.dmlab.datatypes.EventType;
-import edu.gsu.dmlab.datatypes.interfaces.IBaseDataType;
+
 import edu.gsu.dmlab.datatypes.interfaces.IEvent;
 import edu.gsu.dmlab.datatypes.interfaces.ITrack;
 import edu.gsu.dmlab.factory.interfaces.IIndexFactory;
-import edu.gsu.dmlab.geometry.Point2D;
-import edu.gsu.dmlab.indexes.BasicEventIndexer;
 import edu.gsu.dmlab.indexes.BasicTrackIndexer;
 import edu.gsu.dmlab.indexes.interfaces.AbsMatIndexer;
 
-import org.joda.time.DateTime;
-import org.joda.time.Duration;
 import org.joda.time.Interval;
 import org.junit.Test;
 
@@ -37,14 +33,16 @@ import java.util.concurrent.RecursiveAction;
 public class TrackIndexerTests {
 
 	@Test(expected = IllegalArgumentException.class)
-	public void testConstructorCallsSuperWhichThrowsOnNullList() throws IllegalArgumentException {
+	public void testConstructorCallsSuperWhichThrowsOnNullList()
+			throws IllegalArgumentException {
 		IIndexFactory factory = mock(IIndexFactory.class);
 		@SuppressWarnings("unused")
 		BasicTrackIndexer idxr = new BasicTrackIndexer(null, 1, 1, factory);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void testConstructorThrowsOnFactory() throws IllegalArgumentException {
+	public void testConstructorThrowsOnFactory()
+			throws IllegalArgumentException {
 		@SuppressWarnings("unchecked")
 		ArrayList<ITrack> lst = (ArrayList<ITrack>) mock(ArrayList.class);
 		@SuppressWarnings("unused")
@@ -52,7 +50,8 @@ public class TrackIndexerTests {
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void testConstructorCallsSuperWhichThrowsOnDimLessThanOne() throws IllegalArgumentException {
+	public void testConstructorCallsSuperWhichThrowsOnDimLessThanOne()
+			throws IllegalArgumentException {
 		@SuppressWarnings("unchecked")
 		ArrayList<ITrack> lst = (ArrayList<ITrack>) mock(ArrayList.class);
 		IIndexFactory factory = mock(IIndexFactory.class);
@@ -62,7 +61,8 @@ public class TrackIndexerTests {
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void testConstructorCallsSuperWhichThrowsOnDivLessThanOne() throws IllegalArgumentException {
+	public void testConstructorCallsSuperWhichThrowsOnDivLessThanOne()
+			throws IllegalArgumentException {
 		@SuppressWarnings("unchecked")
 		ArrayList<ITrack> lst = (ArrayList<ITrack>) mock(ArrayList.class);
 		IIndexFactory factory = mock(IIndexFactory.class);
@@ -79,13 +79,12 @@ public class TrackIndexerTests {
 		// list for input to constructor of track indexer
 		ArrayList<ITrack> lst = new ArrayList<ITrack>();
 
-		Duration dur = new Duration(0, 2000);
-
 		// make factory for constructor input and its return values as well
 		IIndexFactory factory = mock(IIndexFactory.class);
 		RecursiveAction rs = mock(RecursiveAction.class);
-		when(factory.getBaseObjectAreaSort(any(ArrayList[][].class), anyInt(), anyInt(), anyInt(), anyInt()))
-				.thenReturn(rs);
+		when(
+				factory.getBaseObjectAreaSort(any(ArrayList[][].class),
+						anyInt(), anyInt(), anyInt(), anyInt())).thenReturn(rs);
 
 		// create track to index
 		ITrack trk = mock(ITrack.class);
@@ -109,16 +108,18 @@ public class TrackIndexerTests {
 		when(evnt.getShape()).thenReturn(geom);
 		int regionDim = 5;
 		int regionDiv = 1;
-		AbsMatIndexer<ITrack> idxr = new BasicTrackIndexer(lst, regionDim, regionDiv, factory);
+		AbsMatIndexer<ITrack> idxr = new BasicTrackIndexer(lst, regionDim,
+				regionDiv, factory);
 
 		int[] xArr2 = { 4, 5, 5, 4 };
 		int[] yArr2 = { 4, 4, 5, 5 };
 		Polygon poly = new Polygon(xArr2, yArr2, xArr2.length);
-		ArrayList<ITrack> retList = idxr.filterOnIntervalAndLocation(itvl, poly);
+		ArrayList<ITrack> retList = idxr
+				.filterOnIntervalAndLocation(itvl, poly);
 		assertTrue(retList.size() == 0);
 
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testFilterOnIntervalAndLocationDoesNotReturnWhenNotIntersectingSpatialSG()
@@ -127,13 +128,12 @@ public class TrackIndexerTests {
 		// list for input to constructor of track indexer
 		ArrayList<ITrack> lst = new ArrayList<ITrack>();
 
-		Duration dur = new Duration(0, 2000);
-
 		// make factory for constructor input and its return values as well
 		IIndexFactory factory = mock(IIndexFactory.class);
 		RecursiveAction rs = mock(RecursiveAction.class);
-		when(factory.getBaseObjectAreaSort(any(ArrayList[][].class), anyInt(), anyInt(), anyInt(), anyInt()))
-				.thenReturn(rs);
+		when(
+				factory.getBaseObjectAreaSort(any(ArrayList[][].class),
+						anyInt(), anyInt(), anyInt(), anyInt())).thenReturn(rs);
 
 		// create track to index
 		ITrack trk = mock(ITrack.class);
@@ -157,33 +157,33 @@ public class TrackIndexerTests {
 		when(evnt.getShape()).thenReturn(geom);
 		int regionDim = 5;
 		int regionDiv = 1;
-		AbsMatIndexer<ITrack> idxr = new BasicTrackIndexer(lst, regionDim, regionDiv, factory);
+		AbsMatIndexer<ITrack> idxr = new BasicTrackIndexer(lst, regionDim,
+				regionDiv, factory);
 
 		int[] xArr2 = { 4, 5, 5, 4 };
 		int[] yArr2 = { 4, 4, 5, 5 };
 		Polygon poly = new Polygon(xArr2, yArr2, xArr2.length);
-		ArrayList<ITrack> retList = idxr.filterOnIntervalAndLocation(itvl, poly);
+		ArrayList<ITrack> retList = idxr
+				.filterOnIntervalAndLocation(itvl, poly);
 		assertTrue(retList.size() == 0);
 
 	}
-	
-	
-	
+
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testFilterOnIntervalAndLocationDoesReturnWhenIntersectingSpatialTemporalAR()
 			throws IllegalArgumentException {
-		
+
 		// list for input to constructor of track indexer
 		ArrayList<ITrack> lst = new ArrayList<ITrack>();
-		
-		
+
 		// make factory for constructor input and its return values as well
 		IIndexFactory factory = mock(IIndexFactory.class);
 		RecursiveAction rs = mock(RecursiveAction.class);
-		when(factory.getBaseObjectAreaSort(any(ArrayList[][].class), anyInt(), anyInt(), anyInt(), anyInt()))
-		.thenReturn(rs);
-		
+		when(
+				factory.getBaseObjectAreaSort(any(ArrayList[][].class),
+						anyInt(), anyInt(), anyInt(), anyInt())).thenReturn(rs);
+
 		// create track to index
 		ITrack trk = mock(ITrack.class);
 		IEvent evnt = mock(IEvent.class);
@@ -191,7 +191,7 @@ public class TrackIndexerTests {
 		when(trk.getType()).thenReturn(EventType.ACTIVE_REGION);
 		when(trk.getFirst()).thenReturn(evnt);
 		// event for the track
-		
+
 		// add interval to the event
 		Interval itvl = new Interval(0, 5000);
 		when(evnt.getTimePeriod()).thenReturn(itvl);
@@ -206,16 +206,18 @@ public class TrackIndexerTests {
 		when(evnt.getShape()).thenReturn(geom);
 		int regionDim = 4;
 		int regionDiv = 1;
-		AbsMatIndexer<ITrack> idxr = new BasicTrackIndexer(lst, regionDim, regionDiv, factory);
-		
-		int[] xArr2 = {1,2,2,1};
-		int[] yArr2 = {1,1,2,2};
+		AbsMatIndexer<ITrack> idxr = new BasicTrackIndexer(lst, regionDim,
+				regionDiv, factory);
+
+		int[] xArr2 = { 1, 2, 2, 1 };
+		int[] yArr2 = { 1, 1, 2, 2 };
 		Polygon poly = new Polygon(xArr2, yArr2, xArr2.length);
-		ArrayList<ITrack> retList = idxr.filterOnIntervalAndLocation(itvl, poly);
+		ArrayList<ITrack> retList = idxr
+				.filterOnIntervalAndLocation(itvl, poly);
 		assertTrue(retList.size() == 1);
-		
+
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testFilterOnIntervalAndLocationDoesReturnWhenIntersectingSpatialTemporalSG()
@@ -224,12 +226,12 @@ public class TrackIndexerTests {
 		// list for input to constructor of track indexer
 		ArrayList<ITrack> lst = new ArrayList<ITrack>();
 
-
 		// make factory for constructor input and its return values as well
 		IIndexFactory factory = mock(IIndexFactory.class);
 		RecursiveAction rs = mock(RecursiveAction.class);
-		when(factory.getBaseObjectAreaSort(any(ArrayList[][].class), anyInt(), anyInt(), anyInt(), anyInt()))
-				.thenReturn(rs);
+		when(
+				factory.getBaseObjectAreaSort(any(ArrayList[][].class),
+						anyInt(), anyInt(), anyInt(), anyInt())).thenReturn(rs);
 
 		// create track to index
 		ITrack trk = mock(ITrack.class);
@@ -253,17 +255,18 @@ public class TrackIndexerTests {
 		when(evnt.getShape()).thenReturn(geom);
 		int regionDim = 4;
 		int regionDiv = 1;
-		AbsMatIndexer<ITrack> idxr = new BasicTrackIndexer(lst, regionDim, regionDiv, factory);
+		AbsMatIndexer<ITrack> idxr = new BasicTrackIndexer(lst, regionDim,
+				regionDiv, factory);
 
-		
-		int[] xArr2 = {1,2,2,1};
-		int[] yArr2 = {1,1,2,2};
+		int[] xArr2 = { 1, 2, 2, 1 };
+		int[] yArr2 = { 1, 1, 2, 2 };
 		Polygon poly = new Polygon(xArr2, yArr2, xArr2.length);
-		ArrayList<ITrack> retList = idxr.filterOnIntervalAndLocation(itvl, poly);
+		ArrayList<ITrack> retList = idxr
+				.filterOnIntervalAndLocation(itvl, poly);
 		assertTrue(retList.size() == 1);
 
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testFilterOnIntervalAndLocationDoesNotReturnWhenIntersectingSpatialButNotTemporalAR()
@@ -272,12 +275,12 @@ public class TrackIndexerTests {
 		// list for input to constructor of track indexer
 		ArrayList<ITrack> lst = new ArrayList<ITrack>();
 
-
 		// make factory for constructor input and its return values as well
 		IIndexFactory factory = mock(IIndexFactory.class);
 		RecursiveAction rs = mock(RecursiveAction.class);
-		when(factory.getBaseObjectAreaSort(any(ArrayList[][].class), anyInt(), anyInt(), anyInt(), anyInt()))
-				.thenReturn(rs);
+		when(
+				factory.getBaseObjectAreaSort(any(ArrayList[][].class),
+						anyInt(), anyInt(), anyInt(), anyInt())).thenReturn(rs);
 
 		// create track to index
 		ITrack trk = mock(ITrack.class);
@@ -301,17 +304,18 @@ public class TrackIndexerTests {
 		when(evnt.getShape()).thenReturn(geom);
 		int regionDim = 4;
 		int regionDiv = 1;
-		AbsMatIndexer<ITrack> idxr = new BasicTrackIndexer(lst, regionDim, regionDiv, factory);
+		AbsMatIndexer<ITrack> idxr = new BasicTrackIndexer(lst, regionDim,
+				regionDiv, factory);
 
 		Interval itvl2 = new Interval(6000, 7000);
-		int[] xArr2 = {1,2,2,1};
-		int[] yArr2 = {1,1,2,2};
+		int[] xArr2 = { 1, 2, 2, 1 };
+		int[] yArr2 = { 1, 1, 2, 2 };
 		Polygon poly = new Polygon(xArr2, yArr2, xArr2.length);
-		ArrayList<ITrack> retList = idxr.filterOnIntervalAndLocation(itvl2, poly);
+		ArrayList<ITrack> retList = idxr.filterOnIntervalAndLocation(itvl2,
+				poly);
 		assertTrue(retList.size() == 0);
 
 	}
-	
 
 	@SuppressWarnings("unchecked")
 	@Test
@@ -321,12 +325,12 @@ public class TrackIndexerTests {
 		// list for input to constructor of track indexer
 		ArrayList<ITrack> lst = new ArrayList<ITrack>();
 
-
 		// make factory for constructor input and its return values as well
 		IIndexFactory factory = mock(IIndexFactory.class);
 		RecursiveAction rs = mock(RecursiveAction.class);
-		when(factory.getBaseObjectAreaSort(any(ArrayList[][].class), anyInt(), anyInt(), anyInt(), anyInt()))
-				.thenReturn(rs);
+		when(
+				factory.getBaseObjectAreaSort(any(ArrayList[][].class),
+						anyInt(), anyInt(), anyInt(), anyInt())).thenReturn(rs);
 
 		// create track to index
 		ITrack trk = mock(ITrack.class);
@@ -350,13 +354,15 @@ public class TrackIndexerTests {
 		when(evnt.getShape()).thenReturn(geom);
 		int regionDim = 4;
 		int regionDiv = 1;
-		AbsMatIndexer<ITrack> idxr = new BasicTrackIndexer(lst, regionDim, regionDiv, factory);
+		AbsMatIndexer<ITrack> idxr = new BasicTrackIndexer(lst, regionDim,
+				regionDiv, factory);
 
 		Interval itvl2 = new Interval(6000, 7000);
-		int[] xArr2 = {1,2,2,1};
-		int[] yArr2 = {1,1,2,2};
+		int[] xArr2 = { 1, 2, 2, 1 };
+		int[] yArr2 = { 1, 1, 2, 2 };
 		Polygon poly = new Polygon(xArr2, yArr2, xArr2.length);
-		ArrayList<ITrack> retList = idxr.filterOnIntervalAndLocation(itvl2, poly);
+		ArrayList<ITrack> retList = idxr.filterOnIntervalAndLocation(itvl2,
+				poly);
 		assertTrue(retList.size() == 0);
 
 	}
