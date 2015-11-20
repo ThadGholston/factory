@@ -1,1 +1,1 @@
-#Distributed Event Tracking with Hadoop
+# Converted C++ implementation of Event Tracking to Java and Updated Indexing
